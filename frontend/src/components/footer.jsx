@@ -3,6 +3,8 @@
 import { Shield, Github, Twitter, Globe } from 'lucide-react'
 import Link from 'next/link'
 
+const explorerUrl = process.env.NEXT_PUBLIC_EXPLORER_URL || 'https://testnet-scan.polygon.technology'
+
 export function Footer() {
   return (
     <footer className="relative mt-20 border-t border-white/10 bg-black/20 backdrop-blur-xl">
@@ -19,7 +21,7 @@ export function Footer() {
               </span>
             </Link>
             <p className="text-gray-400 text-sm leading-relaxed max-w-xs">
-              Verifiable smart contract audit credentials using zero-knowledge proofs on Moca Chain Testnet.
+              Verifiable smart contract audit credentials using zero-knowledge proofs on Polygon Amoy.
             </p>
           </div>
 
@@ -50,11 +52,11 @@ export function Footer() {
             <div className="space-y-2 text-sm">
               <div className="flex items-center gap-2 text-gray-400">
                 <Globe className="w-4 h-4" />
-                <span>Moca Chain Testnet</span>
+                <span>Polygon Amoy Testnet</span>
               </div>
-              <div className="text-gray-400">Chain ID: 5151</div>
+              <div className="text-gray-400">Chain ID: 80002</div>
               <a
-                href="https://testnet-scan.mocachain.org"
+                href={explorerUrl}
                 target="_blank"
                 rel="noreferrer"
                 className="text-indigo-400 hover:text-indigo-300 transition-colors inline-flex items-center gap-1"
@@ -68,7 +70,7 @@ export function Footer() {
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="text-gray-500 text-sm">
-            © 2024 zkVerify. Built for Moca Chain Testnet.
+            © 2024 zkVerify. Built for Polygon Amoy Testnet.
           </div>
           <div className="flex items-center gap-4">
             <a

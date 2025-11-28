@@ -12,6 +12,8 @@ import CredibilityScore from '@/components/credibility-score'
 import VerificationSteps from '@/components/verification-steps'
 import { getReadOnlyContract } from '@/lib/ethers'
 import { EXPLORER_URL } from '@/config'
+
+const explorerBase = process.env.NEXT_PUBLIC_EXPLORER_URL || EXPLORER_URL
 import { Search, ExternalLink, Shield, CheckCircle2, XCircle, User, Hash } from 'lucide-react'
 
 export default function VerifyPage() {
@@ -249,7 +251,7 @@ export default function VerifyPage() {
                   </h3>
                   <p className="text-white/60 max-w-md">
                     {result
-                      ? 'This project has a verified audit credential recorded on Moca Chain'
+                      ? 'This project has a verified audit credential recorded on Polygon Amoy'
                       : 'No verification record found for this address on-chain'}
                   </p>
                 </div>
@@ -320,7 +322,7 @@ export default function VerifyPage() {
                     
                     <div className="flex gap-3 mt-4">
                       <a
-                        href={`${EXPLORER_URL}/address/${auditor}`}
+                        href={`${explorerBase}/address/${auditor}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-2 text-indigo-400 hover:text-indigo-300 transition-colors text-sm"
@@ -349,13 +351,13 @@ export default function VerifyPage() {
                 {/* Explorer Link */}
                 {result && (
                   <a
-                    href={`${EXPLORER_URL}/address/${address}`}
+                    href={`${explorerBase}/address/${address}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="relative z-10 pointer-events-auto inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/30 text-white transition-all duration-300"
                   >
                     <ExternalLink className="h-4 w-4" />
-                    View on Moca Explorer
+                    View on Polygon Explorer
                   </a>
                 )}
               </div>
@@ -381,7 +383,7 @@ export default function VerifyPage() {
                 2️⃣ <strong className="text-white">Projects</strong> generate zero-knowledge proofs without revealing audit details
               </p>
               <p>
-                3️⃣ <strong className="text-white">Verification status</strong> is recorded immutably on Moca Chain Testnet
+                3️⃣ <strong className="text-white">Verification status</strong> is recorded immutably on Polygon Amoy Testnet
               </p>
               <p>
                 4️⃣ <strong className="text-white">Anyone</strong> can verify a project's audit status using their wallet address

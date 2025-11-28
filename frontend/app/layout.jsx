@@ -4,36 +4,39 @@ import { Navbar } from '@/components/navbar'
 import { Footer } from '@/components/footer'
 import { WalletProvider } from '@/providers/wallet'
 import { Toaster } from 'react-hot-toast'
+import { ErrorBoundary } from '@/components/error-boundary'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 
 export const metadata = {
   title: 'zkVerify - Verifiable Smart Contract Audit Credentials',
   description: 'Prove your smart contracts have been audited without revealing private audit reports using zero-knowledge proofs.',
-  keywords: 'blockchain, audit, verification, zk, credentials, smart contracts, moca chain',
+  keywords: 'blockchain, audit, verification, zk, credentials, smart contracts, polygon amoy',
 }
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className="dark">
       <body className={`${inter.variable} font-sans`}>
-        <WalletProvider>
-          <div className="relative min-h-screen overflow-x-hidden">
-            {/* Animated Background Gradients */}
-            <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-              <div className="absolute top-0 left-1/4 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }} />
-              <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '6s', animationDelay: '1s' }} />
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '8s', animationDelay: '2s' }} />
-            </div>
+        <ErrorBoundary>
+          <WalletProvider>
+            <div className="relative min-h-screen overflow-x-hidden">
+              {/* Animated Background Gradients */}
+              <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+                <div className="absolute top-0 left-1/4 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }} />
+                <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '6s', animationDelay: '1s' }} />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '8s', animationDelay: '2s' }} />
+              </div>
 
-            {/* Main Content */}
-            <Navbar />
-            <main className="relative">
-              {children}
-            </main>
-            <Footer />
-          </div>
-        </WalletProvider>
+              {/* Main Content */}
+              <Navbar />
+              <main className="relative">
+                {children}
+              </main>
+              <Footer />
+            </div>
+          </WalletProvider>
+        </ErrorBoundary>
 
         {/* Toast Notifications */}
         <Toaster

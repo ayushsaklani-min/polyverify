@@ -15,6 +15,7 @@ const CredibilityScore = ({ address, size = 'md', showBreakdown = false }) => {
   const [breakdown, setBreakdown] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showTooltip, setShowTooltip] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const sizeConfig = {
     sm: { size: 60, strokeWidth: 4, fontSize: 'text-sm' },
@@ -27,6 +28,12 @@ const CredibilityScore = ({ address, size = 'md', showBreakdown = false }) => {
   const circumference = radius * 2 * Math.PI;
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+
     let timer;
 
     const fetchScore = async () => {
@@ -55,7 +62,7 @@ const CredibilityScore = ({ address, size = 'md', showBreakdown = false }) => {
     timer = setInterval(fetchScore, 30000);
 
     return () => clearInterval(timer);
-  }, [address]);
+  }, [address, mounted]);
 
   const getScoreColor = (value) => {
     if (value > 70) return { color: '#059669', bg: 'bg-emerald-500/10', text: 'text-green-400' }; // Green
@@ -77,7 +84,8 @@ const CredibilityScore = ({ address, size = 'md', showBreakdown = false }) => {
     ? SOURCE_CONFIG.filter(({ key }) => breakdown[key])
     : [];
 
-  if (loading) {
+  // Prevent hydration mismatch
+  if (!mounted || loading) {
     return (
       <div className={`flex items-center justify-center ${config.fontSize}`}>
         <div 

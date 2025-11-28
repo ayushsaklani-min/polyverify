@@ -1,130 +1,73 @@
-/**
- * zkVerify — Moca Buildathon 2025 | Auditable Zero-Knowledge Verification Layer
- * 
- * Metrics Service: Collects and aggregates proof generation and verification metrics.
- * Tracks proof latency, gas usage, and success rates.
- */
-
-const fs = require('fs');
-const path = require('path');
-
-const METRICS_PATH = path.join(__dirname, '..', 'metrics.json');
-
-const metrics = {
-  proofGeneration: [],
-  proofVerification: [],
-};
-
-function ensureFile() {
-  if (fs.existsSync(METRICS_PATH)) {
-    try {
-      const parsed = JSON.parse(fs.readFileSync(METRICS_PATH, 'utf8'));
-      if (Array.isArray(parsed.proofGeneration)) metrics.proofGeneration = parsed.proofGeneration;
-      if (Array.isArray(parsed.proofVerification)) metrics.proofVerification = parsed.proofVerification;
-    } catch (err) {
-      // ignore malformed file and overwrite later
-    }
-  }
-}
-
-function persist() {
-  fs.writeFileSync(METRICS_PATH, JSON.stringify(metrics, null, 2));
-}
-
-ensureFile();
-
-function logProofGeneration(entry) {
-  metrics.proofGeneration.push({
-    ...entry,
-    timestamp: new Date().toISOString(),
-  });
-  metrics.proofGeneration = metrics.proofGeneration.slice(-200);
-  persist();
-}
-
-function logProofVerification(entry) {
-  metrics.proofVerification.push({
-    ...entry,
-    timestamp: new Date().toISOString(),
-  });
-  metrics.proofVerification = metrics.proofVerification.slice(-200);
-  persist();
-}
+const Metric = require("../models/Metric");
 
 function average(items, key) {
-  if (!items.length) return 0;
-  const filtered = items
-    .map((item) => Number(item[key]))
-    .filter((value) => Number.isFinite(value));
+  if (!items || !items.length) return 0;
+  const filtered = items.map((i) => Number(i[key]) || 0).filter((v) => Number.isFinite(v));
   if (!filtered.length) return 0;
-  const total = filtered.reduce((acc, curr) => acc + curr, 0);
-  return total / filtered.length;
-}
-
-function median(items, key) {
-  if (!items.length) return 0;
-  const filtered = items
-    .map((item) => Number(item[key]))
-    .filter((value) => Number.isFinite(value))
-    .sort((a, b) => a - b);
-  if (!filtered.length) return 0;
-  const mid = Math.floor(filtered.length / 2);
-  if (filtered.length % 2 === 0) {
-    return (filtered[mid - 1] + filtered[mid]) / 2;
-  }
-  return filtered[mid];
-}
-
-function successRate(items) {
-  if (!items.length) return 0;
-  const successes = items.filter((item) => item.success === true).length;
-  return (successes / items.length) * 100;
-}
-
-function latest(items) {
-  return items.length ? items[items.length - 1] : null;
-}
-
-function getMetrics() {
-  const proofGenAverage = average(metrics.proofGeneration, 'durationMs');
-  const proofGenMedian = median(metrics.proofGeneration, 'durationMs');
-  const verifyAverageGas = average(metrics.proofVerification, 'gasUsed');
-  const verifyMedianGas = median(metrics.proofVerification, 'gasUsed');
-  const verifyMedianLatency = median(metrics.proofVerification, 'latencyMs');
-
-  const updatedAt = latest(
-    metrics.proofVerification.length ? metrics.proofVerification : metrics.proofGeneration
-  )?.timestamp || new Date().toISOString();
-
-  return {
-    proofGeneration: {
-      count: metrics.proofGeneration.length,
-      averageMs: Number(proofGenAverage.toFixed(2)),
-      medianMs: Number(proofGenMedian.toFixed(2)),
-      last: latest(metrics.proofGeneration),
-      recent: metrics.proofGeneration.slice(-10)
-    },
-    proofVerification: {
-      count: metrics.proofVerification.length,
-      averageGas: Number(verifyAverageGas.toFixed(2)),
-      medianGas: Number(verifyMedianGas.toFixed(2)),
-      medianLatencyMs: Number(verifyMedianLatency.toFixed(2)),
-      successRate: Number(successRate(metrics.proofVerification).toFixed(2)),
-      last: latest(metrics.proofVerification),
-      recent: metrics.proofVerification.slice(-10)
-    },
-    summary: {
-      proof_time_ms: Number(proofGenMedian.toFixed(2)),
-      verify_gas: Number(verifyMedianGas.toFixed(2)),
-      success_rate: Number(successRate(metrics.proofVerification).toFixed(2)),
-      updated_at: updatedAt
-    }
-  };
+  return filtered.reduce((a, b) => a + b, 0) / filtered.length;
 }
 
 module.exports = {
-  logProofGeneration,
-  logProofVerification,
-  getMetrics,
+  logProofGeneration: async (data) => {
+    const m = new Metric({
+      type: "proofGeneration",
+      durationMs: data.durationMs || 0,
+      proofSizeBytes: data.proofSizeBytes || 0,
+      success: data.success !== false,
+      project: data.project || null,
+      auditor: data.auditor || null,
+      detail: data.detail || {}
+    });
+    await m.save();
+    return m;
+  },
+
+  logProofVerification: async (data) => {
+    const m = new Metric({
+      type: "proofVerification",
+      durationMs: data.durationMs || 0,
+      gasUsed: data.gasUsed || 0,
+      success: data.success !== false,
+      project: data.project || null,
+      auditor: data.auditor || null,
+      detail: data.detail || {}
+    });
+    await m.save();
+    return m;
+  },
+
+  getMetrics: async () => {
+    const recent = await Metric.find({}).sort({ createdAt: -1 }).limit(200);
+    const gen = recent.filter(r => r.type === "proofGeneration");
+    const ver = recent.filter(r => r.type === "proofVerification");
+
+    const successRate = (arr) => {
+      if (!arr.length) return 0;
+      const succ = arr.filter(a => a.success).length;
+      return Number(((succ / arr.length) * 100).toFixed(2));
+    };
+
+    return {
+      proofGeneration: {
+        count: gen.length,
+        averageMs: Math.round(average(gen, "durationMs")),
+        recent: gen.slice(0, 10),
+      },
+      proofVerification: {
+        count: ver.length,
+        averageMs: Math.round(average(ver, "durationMs")),
+        averageGas: Math.round(average(ver, "gasUsed")),
+        successRate: successRate(ver),
+        recent: ver.slice(0, 10),
+      },
+      summary: {
+        proof_time_ms: Math.round(average(gen, "durationMs")),
+        verify_gas: Math.round(average(ver, "gasUsed")),
+        success_rate: successRate(ver),
+        updated_at: new Date().toISOString()
+      }
+    };
+  }
 };
+
 

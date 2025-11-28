@@ -8,6 +8,8 @@ import confetti from 'canvas-confetti'
 import { GlassCard } from '@/components/ui/glass-card'
 import { GradientButton } from '@/components/ui/gradient-button'
 import { AnimatedBadge } from '@/components/ui/animated-badge'
+
+const explorerUrl = process.env.NEXT_PUBLIC_EXPLORER_URL || 'https://testnet-scan.polygon.technology'
 import { generateProof } from '@/lib/airkit'
 import { Lock, Send, CheckCircle, FileKey, Sparkles } from 'lucide-react'
 
@@ -255,7 +257,7 @@ export default function ProjectPage() {
               </div>
               <div>
                 <h2 className="text-2xl font-bold text-white">Submit Proof</h2>
-                <p className="text-white/50 text-sm">Record verification on Moca Chain</p>
+                <p className="text-white/50 text-sm">Record verification on Polygon Amoy</p>
               </div>
             </div>
 
@@ -282,7 +284,7 @@ export default function ProjectPage() {
                 </motion.div>
                 <h3 className="text-2xl font-bold text-green-400 mb-2">Verification Successful!</h3>
                 <p className="text-white/60 max-w-xs">
-                  Your audit status has been recorded on Moca Chain Testnet
+                  Your audit status has been recorded on Polygon Amoy Testnet
                 </p>
                 <AnimatedBadge status="verified" className="mt-6" />
                 {txResult && (
@@ -291,7 +293,7 @@ export default function ProjectPage() {
                       <div>
                         Tx Hash:{' '}
                         <a
-                          href={`https://testnet-scan.mocachain.org/tx/${txResult.txHash}`}
+                          href={`${explorerUrl}/tx/${txResult.txHash}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-indigo-300 hover:text-indigo-200"

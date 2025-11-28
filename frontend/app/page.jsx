@@ -36,7 +36,7 @@ export default function HomePage() {
     {
       icon: Search,
       title: 'Investors Verify On-Chain',
-      description: 'Anyone can instantly verify audit status on Moca Testnet blockchain using just a wallet address query.',
+      description: 'Anyone can instantly verify audit status on Polygon Amoy using just a wallet address query.',
       color: 'from-pink-500 to-pink-600'
     }
   ]
@@ -44,7 +44,7 @@ export default function HomePage() {
   const stats = [
     { value: '100%', label: 'Privacy Preserved' },
     { value: 'Instant', label: 'On-Chain Verification' },
-    { value: 'Moca', label: 'Chain Testnet' }
+    { value: 'Polygon', label: 'Amoy Testnet' }
   ]
 
   return (

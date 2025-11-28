@@ -7,6 +7,7 @@ const AuditorBadge = ({ address, showScore = false, size = 'md' }) => {
   const [isApproved, setIsApproved] = useState(false);
   const [credibilityScore, setCredibilityScore] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
 
   const sizeClasses = {
     sm: 'text-xs px-2 py-1',
@@ -21,6 +22,12 @@ const AuditorBadge = ({ address, showScore = false, size = 'md' }) => {
   };
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+
     const checkAuditorStatus = async () => {
       if (!address) {
         setLoading(false);
@@ -52,7 +59,17 @@ const AuditorBadge = ({ address, showScore = false, size = 'md' }) => {
     };
 
     checkAuditorStatus();
-  }, [address, showScore]);
+  }, [address, showScore, mounted]);
+
+  // Prevent hydration mismatch by not rendering until mounted
+  if (!mounted) {
+    return (
+      <div className={`inline-flex items-center gap-1 bg-gray-100 text-gray-400 rounded-full ${sizeClasses[size]}`}>
+        <div className={`${iconSizes[size]} bg-gray-300 rounded-full`}></div>
+        <span>Loading...</span>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

@@ -1,5 +1,5 @@
 /**
- * zkVerify — Moca Buildathon 2025 | Auditable Zero-Knowledge Verification Layer
+ * zkVerify — Polygon Amoy | Auditable Zero-Knowledge Verification Layer
  * 
  * Application submission routes for auditor onboarding.
  * Handles application storage and admin notifications.
@@ -7,44 +7,15 @@
 
 const express = require('express');
 const { ethers } = require('ethers');
-const fs = require('fs');
-const path = require('path');
 const nodemailer = require('nodemailer');
 
 const router = express.Router();
+const Application = require('../models/Application');
 
-// Path to store pending applications (JSON file)
-const APPLICATIONS_FILE = path.join(__dirname, '..', 'pending-applications.json');
-
-/**
- * Initialize applications file if it doesn't exist
- */
-function initApplicationsFile() {
-  if (!fs.existsSync(APPLICATIONS_FILE)) {
-    fs.writeFileSync(APPLICATIONS_FILE, JSON.stringify([], null, 2));
-  }
-}
-
-/**
- * Read pending applications
- */
-function getPendingApplications() {
-  initApplicationsFile();
-  try {
-    const data = fs.readFileSync(APPLICATIONS_FILE, 'utf8');
-    return JSON.parse(data);
-  } catch (error) {
-    console.error('Error reading applications file:', error);
-    return [];
-  }
-}
-
-/**
- * Save pending applications
- */
-function saveApplications(applications) {
-  initApplicationsFile();
-  fs.writeFileSync(APPLICATIONS_FILE, JSON.stringify(applications, null, 2));
+// helper: create application
+async function createApplication(payload) {
+  const app = new Application(payload);
+  return await app.save();
 }
 
 /**
@@ -163,7 +134,7 @@ async function notifyAdmin(application) {
       await transporter.sendMail(mailOptions);
       console.log(`✅ Email sent successfully to ${adminEmail}`);
     } else {
-      console.log(`⚠️  Email not configured. Application logged to console and saved to pending-applications.json`);
+      console.log(`⚠️  Email not configured. Application logged to console and stored in MongoDB.`);
       console.log(`💡 To enable emails, add SMTP config or GMAIL_USER/GMAIL_APP_PASSWORD to .env`);
     }
   } catch (error) {
@@ -181,35 +152,26 @@ router.post('/', async (req, res) => {
   try {
     const { walletAddress, githubHandle, code4renaHandle, immunefiHandle, message } = req.body;
 
-    // Validation
     if (!walletAddress || !ethers.isAddress(walletAddress)) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid wallet address format'
-      });
+      return res.status(400).json({ success: false, error: 'Invalid wallet address format' });
     }
-
-    // Check if at least one handle is provided
     if (!githubHandle && !code4renaHandle && !immunefiHandle) {
-      return res.status(400).json({
-        success: false,
-        error: 'Please provide at least one platform handle (GitHub, Code4rena, or Immunefi)'
-      });
+      return res.status(400).json({ success: false, error: 'Provide at least one platform handle' });
     }
 
-    // Check if wallet is already approved
+    const normalizedWallet = ethers.getAddress(walletAddress).toLowerCase();
+
     try {
-      const AuditorRegistryABI = require('../../frontend/src/abi/AuditorRegistry.json');
+      const AuditorRegistryABI = require('../abi/AuditorRegistry.json');
       const registryAddress = process.env.AUDITOR_REGISTRY_ADDRESS || process.env.NEXT_PUBLIC_AUDITOR_REGISTRY_ADDRESS;
       if (registryAddress) {
-        const provider = new ethers.JsonRpcProvider(process.env.RPC_URL || 'https://testnet-rpc.mocachain.org');
+        const provider = new ethers.JsonRpcProvider(process.env.RPC_URL || 'https://rpc-amoy.polygon.technology');
         const registry = new ethers.Contract(registryAddress, AuditorRegistryABI, provider);
-        const isApproved = await registry.isApprovedAuditor(walletAddress);
-        
+        const isApproved = await registry.isApprovedAuditor(normalizedWallet);
         if (isApproved) {
           return res.status(400).json({
             success: false,
-            error: 'This wallet address is already approved as an auditor. Please visit the Auditor Dashboard to issue credentials.',
+            error: 'Wallet already approved as auditor',
             alreadyApproved: true
           });
         }
@@ -218,51 +180,37 @@ router.post('/', async (req, res) => {
       console.warn('Could not check approval status:', error.message);
     }
 
-    // Check if application already exists (pending)
-    const applications = getPendingApplications();
-    const existingApplication = applications.find(
-      app => app.walletAddress.toLowerCase() === walletAddress.toLowerCase()
-    );
-
-    if (existingApplication) {
-      return res.status(400).json({
-        success: false,
-        error: 'An application for this wallet address is already pending review'
-      });
+    const existing = await Application.findOne({ wallet: normalizedWallet, status: 'pending' });
+    if (existing) {
+      return res.status(409).json({ success: false, error: 'Existing pending application' });
     }
 
-    // Create application object
-    const application = {
-      walletAddress: walletAddress.toLowerCase(),
-      githubHandle: githubHandle || '',
-      code4renaHandle: code4renaHandle || '',
-      immunefiHandle: immunefiHandle || '',
-      message: message || '',
-      submittedAt: new Date().toISOString(),
-      status: 'pending',
-      reviewedAt: null,
-      reviewedBy: null
-    };
+    const applicationDoc = await createApplication({
+      wallet: normalizedWallet,
+      github: githubHandle,
+      code4rena: code4renaHandle,
+      immunefi: immunefiHandle,
+      message
+    });
 
-    // Save to file
-    applications.push(application);
-    saveApplications(applications);
-
-    // Notify admin
-    await notifyAdmin(application);
+    await notifyAdmin({
+      walletAddress: normalizedWallet,
+      githubHandle,
+      code4renaHandle,
+      immunefiHandle,
+      message,
+      submittedAt: applicationDoc.createdAt
+    });
 
     res.json({
       success: true,
       message: 'Application submitted successfully. Admin will review it shortly.',
-      applicationId: application.walletAddress
+      applicationId: applicationDoc._id,
+      application: applicationDoc
     });
   } catch (error) {
     console.error('Error submitting application:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to submit application',
-      message: error.message
-    });
+    res.status(500).json({ success: false, error: 'Failed to submit application', message: error.message });
   }
 });
 
@@ -270,24 +218,13 @@ router.post('/', async (req, res) => {
  * GET /api/apply/pending
  * Get pending applications (admin only)
  */
-router.get('/pending', async (req, res) => {
+router.get('/pending', async (_req, res) => {
   try {
-    // TODO: Add admin authentication
-    const applications = getPendingApplications();
-    const pending = applications.filter(app => app.status === 'pending');
-    
-    res.json({
-      success: true,
-      count: pending.length,
-      applications: pending
-    });
+    const pending = await Application.find({ status: 'pending' }).sort({ createdAt: -1 });
+    res.json({ success: true, count: pending.length, applications: pending });
   } catch (error) {
     console.error('Error fetching applications:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch applications',
-      message: error.message
-    });
+    res.status(500).json({ success: false, error: 'Failed to fetch applications', message: error.message });
   }
 });
 
@@ -298,41 +235,27 @@ router.get('/pending', async (req, res) => {
 router.get('/:address', async (req, res) => {
   try {
     const { address } = req.params;
-    
     if (!ethers.isAddress(address)) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid address format'
-      });
+      return res.status(400).json({ success: false, error: 'Invalid address format' });
     }
-
-    const applications = getPendingApplications();
-    const application = applications.find(
-      app => app.walletAddress.toLowerCase() === address.toLowerCase()
-    );
+    const normalizedWallet = ethers.getAddress(address).toLowerCase();
+    const application = await Application.findOne({ wallet: normalizedWallet }).lean();
 
     if (!application) {
-      return res.json({
-        success: true,
-        hasApplication: false,
-        status: null
-      });
+      return res.json({ success: true, hasApplication: false, status: null });
     }
 
     res.json({
       success: true,
       hasApplication: true,
       status: application.status,
-      submittedAt: application.submittedAt,
-      reviewedAt: application.reviewedAt
+      submittedAt: application.createdAt,
+      reviewedAt: application.updatedAt,
+      adminNotes: application.adminNotes || null
     });
   } catch (error) {
     console.error('Error checking application status:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to check application status',
-      message: error.message
-    });
+    res.status(500).json({ success: false, error: 'Failed to check application status', message: error.message });
   }
 });
 

@@ -1,5 +1,5 @@
 /**
- * zkVerify — Moca Buildathon 2025 | Auditable Zero-Knowledge Verification Layer
+ * zkVerify — Polygon Amoy | Auditable Zero-Knowledge Verification Layer
  * 
  * Reputation Fetcher: Automated script to periodically update auditor credibility scores
  * on-chain based on reputation data from external platforms.
@@ -10,7 +10,7 @@ const { ethers } = require('ethers');
 const reputationService = require('../services/reputationService');
 
 // Configuration
-const PROVIDER_URL = process.env.MOCA_RPC_URL || 'https://rpc.mocachain.org';
+const PROVIDER_URL = process.env.RPC_URL || 'https://rpc-amoy.polygon.technology';
 const ADMIN_PRIVATE_KEY = process.env.ADMIN_PRIVATE_KEY;
 const AUDITOR_REGISTRY_ADDRESS = process.env.AUDITOR_REGISTRY_ADDRESS;
 

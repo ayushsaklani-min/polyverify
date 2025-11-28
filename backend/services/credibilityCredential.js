@@ -1,5 +1,5 @@
 /**
- * zkVerify — Moca Buildathon 2025 | Auditable Zero-Knowledge Verification Layer
+ * zkVerify — Polygon Amoy | Auditable Zero-Knowledge Verification Layer
  * 
  * Credibility Credential Service: Issues verifiable credibility credentials
  * to auditors upon approval via AIR Kit integration.

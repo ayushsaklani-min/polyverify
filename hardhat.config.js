@@ -1,8 +1,8 @@
 /**
- * zkVerify — Moca Buildathon 2025 | Auditable Zero-Knowledge Verification Layer
+ * zkVerify — Polygon Amoy | Auditable Zero-Knowledge Verification Layer
  * 
  * Hardhat configuration for contract compilation, testing, and deployment.
- * Supports Moca Chain Testnet and localhost networks.
+ * Supports Polygon Amoy Testnet and localhost networks.
  */
 
 require("@nomicfoundation/hardhat-toolbox");
@@ -18,18 +18,18 @@ module.exports = {
         enabled: true,
         runs: 200,
       },
+      viaIR: true, // Enable IR-based code generation to avoid "Stack too deep" errors
     },
   },
   networks: {
     hardhat: {
       chainId: 1337,
     },
-    moca: {
-      url: process.env.RPC_URL || "https://testnet-rpc.mocachain.org",
-      chainId: 222888,
-      accounts: deployerKey ? [`0x${deployerKey}`] : [],
-      gasPrice: 20000000000, // 20 gwei
-    },
+    amoy: {
+      url: process.env.RPC_URL || "https://rpc-amoy.polygon.technology",
+      chainId: Number(process.env.CHAIN_ID) || 80002,
+      accounts: deployerKey ? [`0x${deployerKey}`] : []
+    }
   },
   paths: {
     sources: "./contracts",

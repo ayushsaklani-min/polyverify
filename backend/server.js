@@ -1,60 +1,121 @@
 /**
- * zkVerify — Moca Buildathon 2025 | Auditable Zero-Knowledge Verification Layer
+ * zkVerify — Polygon Amoy | Auditable Zero-Knowledge Verification Layer
  * 
  * Express.js API server for credential issuance, proof generation, and verification.
  * Handles admin authentication, reputation scoring, and metrics collection.
  */
 
-const express = require('express')
-const cors = require('cors')
-const helmet = require('helmet')
-const rateLimit = require('express-rate-limit')
-const dotenv = require('dotenv')
-const path = require('path')
-const { ethers } = require('ethers')
-const axios = require('axios')
-const { body, validationResult } = require('express-validator')
-const { randomUUID } = require('crypto')
+const express = require("express");
+const helmet = require("helmet");
+const cors = require("cors");
+const rateLimit = require("express-rate-limit");
+const { ethers } = require("ethers");
+const axios = require("axios");
+const { body, validationResult } = require("express-validator");
+const { randomUUID } = require("crypto");
+const connectDB = require("./config/db");
+const ProofVerifierABI = require("./abi/ProofVerifier.json");
+const AuditorRegistryABI = require("./abi/AuditorRegistry.json");
+const adminAuth = require("./middleware/adminAuth");
+const credentialStore = require("./services/credentialStore");
+const metricsService = require("./services/metricsService");
+const reputationService = require("./services/reputationService");
+const auditorsRouter = require("./routes/auditors");
+const adminRouter = require("./routes/admin");
+const applyRouter = require("./routes/apply");
+const proofsRouter = require("./routes/proofs");
 
-// Load environment variables FIRST before importing any modules
-dotenv.config({ path: path.join(__dirname, '..', '.env') })
-dotenv.config()
+require("dotenv").config();
 
-const ProofVerifierABI = require('../frontend/src/abi/ProofVerifier.json')
-const AuditorRegistryABI = require('../frontend/src/abi/AuditorRegistry.json')
+const app = express();
 
-const adminAuth = require('./middleware/adminAuth')
-const credentialStore = require('./services/credentialStore')
-const metricsService = require('./services/metricsService')
-const reputationService = require('./services/reputationService')
-
-const auditorsRouter = require('./routes/auditors')
-const adminRouter = require('./routes/admin')
-const applyRouter = require('./routes/apply')
-
-const app = express()
-
-app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }))
-app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3001', process.env.FRONTEND_URL, process.env.NEXT_PUBLIC_WEBSITE_URL].filter(Boolean),
-  credentials: true
-}))
+app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
+app.use(
+  cors({
+    origin: [
+      "http://localhost:3000",
+      "http://localhost:3001",
+      process.env.FRONTEND_URL,
+      process.env.NEXT_PUBLIC_WEBSITE_URL,
+    ].filter(Boolean),
+    credentials: true,
+  })
+);
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
   standardHeaders: true,
-  legacyHeaders: false
-})
+  legacyHeaders: false,
+});
 
-app.use(limiter)
-app.use(express.json({ limit: '10mb' }))
-app.use(express.urlencoded({ extended: true, limit: '10mb' }))
+app.use(limiter);
 
-const RPC_URL = process.env.RPC_URL || 'https://testnet-rpc.mocachain.org'
-const PRIVATE_KEY = process.env.DEPLOYER_PRIVATE_KEY
-const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS || process.env.NEXT_PUBLIC_CONTRACT_ADDRESS
-const ZK_VERIFIER_ADDRESS = (process.env.ZK_VERIFIER_ADDRESS || process.env.NEXT_PUBLIC_ZK_VERIFIER_ADDRESS || '').trim().toLowerCase()
+// Connect to MongoDB once
+(async () => {
+  try {
+    await connectDB(process.env.MONGO_URI);
+    console.log("MongoDB connected");
+  } catch (err) {
+    console.error("MongoDB connection failed", err);
+    process.exit(1);
+  }
+})();
+
+function requireEnv(key) {
+  if (!process.env[key]) {
+    console.error(`❌ Missing required env: ${key}`);
+    process.exit(1);
+  }
+}
+
+[
+  "RPC_URL",
+  "MONGO_URI",
+  "PROOF_SIGNER_PRIVATE_KEY",
+  "AUDITOR_REGISTRY_ADDRESS",
+  "PROOF_VERIFIER_ADDRESS",
+  "ZK_VERIFIER_ADDRESS"
+].forEach(requireEnv);
+
+// Verify contract addresses are deployed on-chain
+(async () => {
+  try {
+    const provider = new ethers.JsonRpcProvider(process.env.RPC_URL);
+    
+    const contracts = [
+      { name: "PROOF_VERIFIER_ADDRESS", address: process.env.PROOF_VERIFIER_ADDRESS },
+      { name: "AUDITOR_REGISTRY_ADDRESS", address: process.env.AUDITOR_REGISTRY_ADDRESS },
+      { name: "ZK_VERIFIER_ADDRESS", address: process.env.ZK_VERIFIER_ADDRESS }
+    ];
+
+    for (const { name, address } of contracts) {
+      const code = await provider.getCode(address);
+      if (code === "0x" || code === "0x0") {
+        console.error(`❌ ${name} has no code on-chain at ${address}`);
+        process.exit(1);
+      }
+      console.log(`✓ ${name} verified on-chain`);
+    }
+  } catch (err) {
+    console.error("❌ Contract validation failed:", err.message);
+    process.exit(1);
+  }
+})();
+
+const RPC_URL = process.env.RPC_URL || "https://rpc-amoy.polygon.technology";
+const PRIVATE_KEY = process.env.DEPLOYER_PRIVATE_KEY;
+const CONTRACT_ADDRESS =
+  process.env.CONTRACT_ADDRESS || process.env.NEXT_PUBLIC_CONTRACT_ADDRESS;
+const ZK_VERIFIER_ADDRESS = (
+  process.env.ZK_VERIFIER_ADDRESS ||
+  process.env.NEXT_PUBLIC_ZK_VERIFIER_ADDRESS ||
+  ""
+)
+  .trim()
+  .toLowerCase();
 
 const abiCoder = ethers.AbiCoder.defaultAbiCoder()
 
@@ -185,7 +246,7 @@ function logRoutes() {
 }
 
 app.get('/health', (_req, res) => {
-  res.json({ status: 'ok', network: 'moca-testnet', rpc: RPC_URL, contract: CONTRACT_ADDRESS, verifier: ZK_VERIFIER_ADDRESS })
+  res.json({ status: 'ok', network: 'polygon-amoy', rpc: RPC_URL, contract: CONTRACT_ADDRESS, verifier: ZK_VERIFIER_ADDRESS })
 })
 
 app.get('/', (_req, res) => {
@@ -240,6 +301,8 @@ function validateAddressParam(req, res, next) {
 app.use('/api/auditors', validateAddressParam, auditorsRouter)
 app.use('/api/apply', applyRouter)
 app.use('/api/admin', adminAuth.requireAdmin, adminRouter)
+// Proof routes (/api/proofs/generate and /api/proofs/verify)
+app.use('/api/proofs', proofsRouter)
 
 app.get('/api/reputation/:address', validateAddressParam, async (req, res) => {
   const { address } = req.params
@@ -344,8 +407,8 @@ async function issueCredentialHandler(req, res) {
 
     const onChainId = ethers.keccak256(ethers.toUtf8Bytes(credentialId))
 
-    const record = credentialStore.upsertCredential({
-      id: credentialId,
+    const record = await credentialStore.upsertCredential({
+      credentialId,
       onChainId,
       issuer: normalizedIssuer,
       subject: normalizedSubject,
@@ -399,16 +462,16 @@ app.post('/api/proofs/generate', proofGenerationValidators, handleValidation, as
     }
 
     const { credentialId } = req.body
-    const credential = credentialStore.getCredential(credentialId)
+    const credential = await Credential.findOne({ credentialId })
     if (!credential) {
-      return res.status(404).json({ error: 'Credential not found. Request issuance before generating proof.' })
+      return res.status(404).json({ error: 'credential_not_found' })
     }
 
     const start = Date.now()
     const proofBytes = ethers.randomBytes(256)
     const proofHex = ethers.hexlify(proofBytes)
     const proofId = ethers.keccak256(ethers.concat([proofBytes, ethers.randomBytes(16)]))
-    const onChainId = credential.onChainId || ethers.keccak256(ethers.toUtf8Bytes(credential.id || credentialId))
+    const onChainId = credential.onChainId || ethers.keccak256(ethers.toUtf8Bytes(credential.credentialId || credentialId))
 
     const publicInputs = [
       BigInt(ethers.getAddress(credential.subject)),
@@ -420,16 +483,28 @@ app.post('/api/proofs/generate', proofGenerationValidators, handleValidation, as
     const signature = await proofSigner.signMessage(ethers.getBytes(digest))
     const durationMs = Date.now() - start
 
-    metricsService.logProofGeneration({
+    await ProofRecord.create({
+      proofId,
+      credentialId,
+      project: credential.subject,
+      auditor: credential.issuer,
+      signature,
+      publicInputs: publicInputs.map((value) => value.toString())
+    })
+
+    await metricsService.logProofGeneration({
       credentialId,
       credentialOnChainId: onChainId,
       proofId,
       durationMs,
-      proofSizeBytes: proofBytes.length
+      proofSizeBytes: proofBytes.length,
+      success: true,
+      project: credential.subject,
+      auditor: credential.issuer
     })
 
     res.json({
-          proof_id: proofId,
+      proof_id: proofId,
       valid: true,
       credential_id: credentialId,
       on_chain_id: onChainId,
@@ -502,7 +577,13 @@ app.post('/api/verifyProof', verifyProofValidators, handleValidation, async (req
     )
     const receipt = await tx.wait()
 
-    metricsService.logProofVerification({
+    await ProofRecord.findOneAndUpdate(
+      { proofId },
+      { validatedOnChain: true, txHash: receipt.hash },
+      { new: true }
+    )
+
+    await metricsService.logProofVerification({
       proofId,
       credentialId,
       credentialOnChainId,
@@ -515,7 +596,7 @@ app.post('/api/verifyProof', verifyProofValidators, handleValidation, async (req
 
     res.json({ ok: true, txHash: receipt.hash, gasUsed: receipt.gasUsed.toString() })
   } catch (err) {
-    metricsService.logProofVerification({
+    await metricsService.logProofVerification({
       proofId,
       credentialId,
       credentialOnChainId,
@@ -530,7 +611,7 @@ app.post('/api/verifyProof', verifyProofValidators, handleValidation, async (req
     const msg = (err?.response?.data?.message || err.message || '').toLowerCase()
     console.error('verifyProof error', err?.response?.data || err.message)
     if (msg.includes('insufficient funds')) {
-      return res.status(400).json({ error: 'Backend wallet has insufficient MOCA for gas' })
+      return res.status(400).json({ error: 'Backend wallet has insufficient MATIC for gas' })
     }
     if (msg.includes('invalid') && msg.includes('private key')) {
       return res.status(500).json({ error: 'Invalid DEPLOYER_PRIVATE_KEY format. Ensure it is a 0x-prefixed 64-hex string.' })
@@ -539,11 +620,17 @@ app.post('/api/verifyProof', verifyProofValidators, handleValidation, async (req
   }
 })
 
-app.get('/metrics', (_req, res) => {
-  res.json(metricsService.getMetrics())
+app.get('/metrics', async (_req, res) => {
+  try {
+    const metrics = await metricsService.getMetrics()
+    res.json(metrics)
+  } catch (err) {
+    console.error('metrics error', err)
+    res.status(500).json({ error: 'Failed to load metrics' })
+  }
 })
 
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT || 10000
 app.listen(PORT, () => console.log(`Backend listening on :${PORT}`))
 
 

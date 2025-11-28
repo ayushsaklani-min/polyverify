@@ -169,7 +169,7 @@ export default function AuditorPage() {
       )
       await tx.wait()
       setIsAnchored(true)
-      toast.success('🎉 Credential anchored on Moca Chain!')
+      toast.success('🎉 Credential anchored on Polygon Amoy!')
     } catch (e) {
       console.error(e)
       toast.error(`❌ Failed to anchor credential: ${e.message}`)
@@ -416,7 +416,7 @@ export default function AuditorPage() {
               </div>
               <div>
                 <h2 className="text-2xl font-bold text-white">Anchor On-Chain</h2>
-                <p className="text-white/50 text-sm">Write credential to Moca Testnet</p>
+                <p className="text-white/50 text-sm">Write credential to Polygon Amoy</p>
               </div>
             </div>
 
@@ -448,7 +448,7 @@ export default function AuditorPage() {
                     disabled={!address}
                     className="w-full"
                   >
-                    {isAnchoring ? 'Anchoring...' : 'Anchor to Moca Chain'}
+                    {isAnchoring ? 'Anchoring...' : 'Anchor to Polygon Amoy'}
                   </GradientButton>
                 )}
 

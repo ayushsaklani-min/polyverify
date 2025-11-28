@@ -1,5 +1,5 @@
 /**
- * zkVerify — Moca Buildathon 2025 | Auditable Zero-Knowledge Verification Layer
+ * zkVerify — Polygon Amoy | Auditable Zero-Knowledge Verification Layer
  * 
  * Admin authentication middleware using EIP-191 signatures and JWT tokens.
  * Validates admin wallet signatures for protected routes.

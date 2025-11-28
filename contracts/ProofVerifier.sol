@@ -21,7 +21,7 @@ interface IZKVerifier {
 
 /**
  * @title ProofVerifier
- * @dev Smart contract for managing verifiable audit credentials on Moca Chain
+ * @dev Smart contract for managing verifiable audit credentials on Polygon Amoy
  * @notice This contract handles credential anchoring and verification status
  */
 contract ProofVerifier {

@@ -1,5 +1,5 @@
 /**
- * zkVerify — Moca Buildathon 2025 | Auditable Zero-Knowledge Verification Layer
+ * zkVerify — Polygon Amoy | Auditable Zero-Knowledge Verification Layer
  * 
  * Auditor API routes for reputation queries, approval status, and profile management.
  */
@@ -10,11 +10,10 @@ const reputationService = require('../services/reputationService');
 const contractDetector = require('../services/contractDetector');
 
 const router = express.Router();
-const fs = require('fs');
-const path = require('path');
+const Application = require('../models/Application');
 
 // Contract ABIs and addresses
-const AUDITOR_REGISTRY_ABI = require('../../frontend/src/abi/AuditorRegistry.json');
+const AUDITOR_REGISTRY_ABI = require('../abi/AuditorRegistry.json');
 const AUDITOR_REGISTRY_ADDRESS = process.env.AUDITOR_REGISTRY_ADDRESS || process.env.NEXT_PUBLIC_AUDITOR_REGISTRY_ADDRESS;
 
 // Provider setup
@@ -27,14 +26,11 @@ function getAuditorRegistryContract() {
   return new ethers.Contract(AUDITOR_REGISTRY_ADDRESS, AUDITOR_REGISTRY_ABI, provider);
 }
 
-// Local applications store (shared with admin routes) for optimistic approval
-const APPLICATIONS_FILE = path.join(__dirname, '..', 'pending-applications.json');
-function getLocalApplicationStatus(walletAddress) {
+async function getLocalApplicationStatus(walletAddress) {
   try {
-    if (!fs.existsSync(APPLICATIONS_FILE)) return null;
-    const apps = JSON.parse(fs.readFileSync(APPLICATIONS_FILE, 'utf8')) || [];
-    const rec = apps.find((a) => (a.walletAddress || '').toLowerCase() === walletAddress.toLowerCase());
-    return rec?.status || null;
+    const normalized = ethers.getAddress(walletAddress).toLowerCase();
+    const app = await Application.findOne({ wallet: normalized }).lean();
+    return app?.status || null;
   } catch (_) {
     return null;
   }
@@ -278,7 +274,7 @@ router.get('/:address/is-approved', async (req, res) => {
 
     // If not yet approved on-chain, check local admin-reviewed status for optimistic UI
     if (!isApproved) {
-      const localStatus = getLocalApplicationStatus(address);
+      const localStatus = await getLocalApplicationStatus(address);
       if (localStatus === 'approved') {
         return res.json({ success: true, address, isApproved: true, pendingOnChain: true });
       }

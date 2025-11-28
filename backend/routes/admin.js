@@ -1,5 +1,5 @@
 /**
- * zkVerify — Moca Buildathon 2025 | Auditable Zero-Knowledge Verification Layer
+ * zkVerify — Polygon Amoy | Auditable Zero-Knowledge Verification Layer
  * 
  * Admin API routes for auditor approval, rejection, and application management.
  * Requires admin authentication via middleware.
@@ -9,58 +9,21 @@ const express = require('express');
 const { ethers } = require('ethers');
 const reputationService = require('../services/reputationService');
 const credibilityCredential = require('../services/credibilityCredential');
-const fs = require('fs');
-const path = require('path');
+const Application = require('../models/Application');
 
 const router = express.Router();
 
-// Path to pending applications file
-const APPLICATIONS_FILE = path.join(__dirname, '..', 'pending-applications.json');
-
-/**
- * Read pending applications
- */
-function getPendingApplications() {
-  if (!fs.existsSync(APPLICATIONS_FILE)) {
-    return [];
-  }
-  try {
-    const data = fs.readFileSync(APPLICATIONS_FILE, 'utf8');
-    return JSON.parse(data);
-  } catch (error) {
-    console.error('Error reading applications file:', error);
-    return [];
-  }
-}
-
-/**
- * Save pending applications
- */
-function saveApplications(applications) {
-  fs.writeFileSync(APPLICATIONS_FILE, JSON.stringify(applications, null, 2));
-}
-
-/**
- * Mark application as reviewed
- */
-function markApplicationReviewed(walletAddress, status, reviewedBy = 'admin') {
-  const applications = getPendingApplications();
-  const index = applications.findIndex(
-    app => app.walletAddress.toLowerCase() === walletAddress.toLowerCase()
+async function updateApplicationStatus(walletAddress, status, adminNotes) {
+  const normalized = ethers.getAddress(walletAddress).toLowerCase();
+  return await Application.findOneAndUpdate(
+    { wallet: normalized },
+    { status, adminNotes },
+    { new: true }
   );
-  
-  if (index !== -1) {
-    applications[index].status = status;
-    applications[index].reviewedAt = new Date().toISOString();
-    applications[index].reviewedBy = reviewedBy;
-    saveApplications(applications);
-    return true;
-  }
-  return false;
 }
 
 // Contract ABIs and addresses
-const AUDITOR_REGISTRY_ABI = require('../../frontend/src/abi/AuditorRegistry.json');
+const AUDITOR_REGISTRY_ABI = require('../abi/AuditorRegistry.json');
 const AUDITOR_REGISTRY_ADDRESS = process.env.AUDITOR_REGISTRY_ADDRESS || process.env.NEXT_PUBLIC_AUDITOR_REGISTRY_ADDRESS;
 
 // Provider setup
@@ -108,36 +71,35 @@ function getAuditorRegistryContract() {
  */
 router.post('/approve-auditor', async (req, res) => {
   try {
-    const { auditorAddress, githubHandle, code4renaHandle, immunefiHandle } = req.body;
+    const { wallet, auditorAddress, githubHandle, code4renaHandle, immunefiHandle, adminNotes } = req.body;
+    const targetAddress = wallet || auditorAddress;
 
-    if (!ethers.isAddress(auditorAddress)) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid auditor address format'
-      });
+    if (!targetAddress || !ethers.isAddress(targetAddress)) {
+      return res.status(400).json({ success: false, error: 'Invalid auditor address format' });
     }
 
+    if (!AUDITOR_REGISTRY_ADDRESS) {
+      return res.status(500).json({ success: false, error: 'AUDITOR_REGISTRY_ADDRESS not configured' });
+    }
+
+    const normalizedAddress = ethers.getAddress(targetAddress);
     const contract = getAuditorRegistryContract();
 
-    // Check if already approved
-    const currentInfo = await contract.getAuditorInfo(auditorAddress);
+    const currentInfo = await contract.getAuditorInfo(normalizedAddress);
     if (currentInfo.isApproved) {
-      return res.status(400).json({
-        success: false,
-        error: 'Auditor already approved'
-      });
+      await updateApplicationStatus(normalizedAddress, 'approved', adminNotes);
+      return res.status(200).json({ success: true, message: 'Auditor already approved', auditor: { address: normalizedAddress, isApproved: true } });
     }
 
-    // Approve auditor on-chain (do not block UI while waiting for confirmations)
-    console.log(`📝 Approving auditor ${auditorAddress}...`);
-    const approveTx = await contract.approveAuditor(auditorAddress);
+    console.log(`📝 Approving auditor ${normalizedAddress}...`);
+    const approveTx = await contract.approveAuditor(normalizedAddress);
     console.log(`✅ approveAuditor tx sent: ${approveTx.hash}`);
-    // Mark as approved locally and respond immediately (prevent UI spinner)
-    markApplicationReviewed(auditorAddress.toLowerCase(), 'approved', 'admin');
+    await updateApplicationStatus(normalizedAddress, 'approved', adminNotes);
+
     res.json({
       success: true,
       auditor: {
-        address: auditorAddress,
+        address: normalizedAddress,
         isApproved: true,
         credibilityScore: null,
         credentialCount: 0
@@ -146,9 +108,7 @@ router.post('/approve-auditor', async (req, res) => {
       message: 'Approval submitted. Finalization will continue in the background.'
     });
 
-    // Fire-and-forget background finalization
     ;(async () => {
-      // Wait up to ~60s for 1 confirmation
       let approvalConfirmed = false;
       try {
         await provider.waitForTransaction(approveTx.hash, 1, 60_000);
@@ -159,11 +119,11 @@ router.post('/approve-auditor', async (req, res) => {
       }
 
       if (githubHandle || code4renaHandle || immunefiHandle) {
-        console.log(`ℹ️  Profile handles provided. Auditor should call updateAuditorProfile() themselves.`);
+        console.log('ℹ️  Profile handles provided. Auditor should call updateAuditorProfile() themselves.');
       }
 
       const auditorInfo = {
-        address: auditorAddress,
+        address: normalizedAddress,
         githubHandle: githubHandle || '',
         code4renaHandle: code4renaHandle || '',
         immunefiHandle: immunefiHandle || '',
@@ -172,9 +132,9 @@ router.post('/approve-auditor', async (req, res) => {
       };
       const reputation = await reputationService.getAuditorReputation(auditorInfo);
 
-      console.log(`🎫 Issuing credibility credential for ${auditorAddress}...`);
+      console.log(`🎫 Issuing credibility credential for ${normalizedAddress}...`);
       await credibilityCredential.issueCredibilityCredential(
-        auditorAddress,
+        normalizedAddress,
         auditorInfo,
         reputation
       );
@@ -182,7 +142,7 @@ router.post('/approve-auditor', async (req, res) => {
       if (reputation.credibilityScore > 0) {
         const tryUpdateScore = async () => {
           try {
-            const scoreTx = await contract.updateCredibilityScore(auditorAddress, reputation.credibilityScore);
+            const scoreTx = await contract.updateCredibilityScore(normalizedAddress, reputation.credibilityScore);
             console.log(`✅ updateCredibilityScore tx sent: ${scoreTx.hash}`);
             try {
               await provider.waitForTransaction(scoreTx.hash, 1, 60_000);
@@ -217,26 +177,15 @@ router.post('/approve-auditor', async (req, res) => {
  */
 router.get('/applications', async (req, res) => {
   try {
-    const applications = getPendingApplications();
-    const { status } = req.query;
-    
-    let filtered = applications;
-    if (status && ['pending', 'approved', 'rejected'].includes(status)) {
-      filtered = applications.filter(app => app.status === status);
+    const query = {};
+    if (req.query.status && ['pending', 'approved', 'rejected'].includes(req.query.status)) {
+      query.status = req.query.status;
     }
-    
-    res.json({
-      success: true,
-      count: filtered.length,
-      applications: filtered
-    });
+    const applications = await Application.find(query).sort({ createdAt: -1 });
+    res.json({ success: true, count: applications.length, applications });
   } catch (error) {
     console.error('Error fetching applications:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch applications',
-      message: error.message
-    });
+    res.status(500).json({ success: false, error: 'Failed to fetch applications', message: error.message });
   }
 });
 
@@ -246,35 +195,21 @@ router.get('/applications', async (req, res) => {
  */
 router.post('/reject-application', async (req, res) => {
   try {
-    const { walletAddress } = req.body;
+    const { walletAddress, adminNotes } = req.body;
 
-    if (!ethers.isAddress(walletAddress)) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid wallet address format'
-      });
+    if (!walletAddress || !ethers.isAddress(walletAddress)) {
+      return res.status(400).json({ success: false, error: 'Invalid wallet address format' });
     }
 
-    const success = markApplicationReviewed(walletAddress.toLowerCase(), 'rejected', 'admin');
-
-    if (!success) {
-      return res.status(404).json({
-        success: false,
-        error: 'Application not found'
-      });
+    const updated = await updateApplicationStatus(walletAddress, 'rejected', adminNotes);
+    if (!updated) {
+      return res.status(404).json({ success: false, error: 'Application not found' });
     }
 
-    res.json({
-      success: true,
-      message: 'Application rejected'
-    });
+    res.json({ success: true, message: 'Application rejected', application: updated });
   } catch (error) {
     console.error('Error rejecting application:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to reject application',
-      message: error.message
-    });
+    res.status(500).json({ success: false, error: 'Failed to reject application', message: error.message });
   }
 });
 

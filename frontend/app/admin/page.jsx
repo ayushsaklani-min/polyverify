@@ -26,6 +26,7 @@ import { ethers } from 'ethers'
 import { getSigner } from '@/lib/ethers'
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:10000'
+const EXPLORER_URL = process.env.NEXT_PUBLIC_EXPLORER_URL || 'https://testnet-scan.polygon.technology'
 
 export default function AdminPage() {
   const { address } = useAccount()
@@ -472,7 +473,7 @@ export default function AdminPage() {
                         </div>
                       )}
                       <a
-                        href={`https://testnet-scan.mocachain.org/address/${app.walletAddress}`}
+                        href={`${EXPLORER_URL}/address/${app.walletAddress}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-2 text-xs text-indigo-300 hover:text-indigo-200"

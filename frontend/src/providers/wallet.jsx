@@ -2,13 +2,13 @@
 
 import { WagmiProvider, createConfig, http } from 'wagmi'
 import { injected } from 'wagmi/connectors'
-import { mocaChain } from '@/lib/chain'
+import { polygonChain } from '@/lib/chain'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 const config = createConfig({
-  chains: [mocaChain],
+  chains: [polygonChain],
   transports: {
-    [mocaChain.id]: http(mocaChain.rpcUrls.default.http[0])
+    [polygonChain.id]: http(polygonChain.rpcUrls.default.http[0])
   },
   connectors: [
     injected({ shimDisconnect: true })

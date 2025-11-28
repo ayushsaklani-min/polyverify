@@ -1,5 +1,5 @@
 /**
- * zkVerify — Moca Buildathon 2025 | Auditable Zero-Knowledge Verification Layer
+ * zkVerify — Polygon Amoy | Auditable Zero-Knowledge Verification Layer
  * 
  * Contract Detection Service: Automatically extracts contract addresses from
  * auditor's work history (GitHub repos, Code4rena findings, Immunefi submissions).
@@ -188,9 +188,9 @@ class ContractDetector {
   /**
    * Verify if an address is a valid contract on-chain
    */
-  async verifyContractAddress(address, chainId = 222888) {
+  async verifyContractAddress(address, chainId = 80002) {
     try {
-      const rpcUrl = process.env.RPC_URL || 'https://testnet-rpc.mocachain.org';
+      const rpcUrl = process.env.RPC_URL || 'https://rpc-amoy.polygon.technology';
       const provider = new ethers.JsonRpcProvider(rpcUrl);
       const code = await provider.getCode(address);
       return code !== '0x' && code !== '0x0';

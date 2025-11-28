@@ -11,6 +11,8 @@ import { Input } from '@/components/ui/input';
 import { GradientButton } from '@/components/ui/gradient-button';
 import { Search, ArrowLeft, ExternalLink, Github, Shield, Bug, FileCode, CheckCircle } from 'lucide-react';
 
+const explorerUrl = process.env.NEXT_PUBLIC_EXPLORER_URL || 'https://testnet-scan.polygon.technology';
+
 export default function AuditorReputationPage() {
   const searchParams = useSearchParams();
   const [address, setAddress] = useState(searchParams.get('address') || '');
@@ -371,7 +373,7 @@ export default function AuditorReputationPage() {
                         </div>
                       </div>
                       <a
-                        href={`https://testnet-scan.mocachain.org/address/${contract.address}`}
+                        href={`${explorerUrl}/address/${contract.address}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="p-2 hover:bg-white/10 rounded-lg transition-colors"

@@ -4,10 +4,15 @@
   "description": "Verifiable Smart Contract Audit Credential Platform",
   "main": "index.js",
   "scripts": {
+    "deploy:polygon": "npx hardhat run scripts/polygon-deploy.js --network amoy",
+    "verify:polygon": "npx hardhat verify --network amoy",
+    "start:backend": "cd backend && npm run dev",
+    "start:frontend": "cd frontend && npm run dev",
+    "test:integration": "node tests/post-deploy-integration.js",
+    "test:e2e": "node tests/post-deploy-integration.js",
+    "approve:auditor": "node scripts/approve-auditor.js",
     "test": "hardhat test",
     "compile": "hardhat compile",
-    "deploy": "hardhat run scripts/deploy.js --network moca",
-    "deploy:upgraded": "hardhat run scripts/deployUpgraded.js --network moca",
     "frontend:dev": "cd frontend && npm run dev",
     "frontend:build": "cd frontend && npm run build",
     "backend:dev": "cd backend && npm run dev",
@@ -21,6 +26,9 @@
     "hardhat": "^2.19.0"
   },
   "dependencies": {
-    "dotenv": "^16.3.1"
+    "dotenv": "^16.3.1",
+    "mongoose": "^9.0.0",
+    "axios": "^1.6.0",
+    "ethers": "^6.8.0"
   }
 }

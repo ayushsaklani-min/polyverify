@@ -1,5 +1,5 @@
 /**
- * zkVerify — Moca Buildathon 2025 | Auditable Zero-Knowledge Verification Layer
+ * zkVerify — Polygon Amoy | Auditable Zero-Knowledge Verification Layer
  * 
  * Reputation Service: Fetches and aggregates auditor reputation data from
  * GitHub, Code4rena, and Immunefi. Calculates credibility scores (0-100).
