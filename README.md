@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🔐 zkVerify
+# 🔐 Polverify
 
 ### Privacy-Preserving Audit Verification Layer for Moca Chain
 
@@ -19,7 +19,7 @@
 
 ## 🌟 Overview
 
-zkVerify is a production-ready protocol that enables **privacy-preserving audit verification** on Moca Chain. Auditors issue verifiable credentials, projects generate zero-knowledge proofs, and investors verify audit status—all while keeping sensitive vulnerability details private.
+Polverify is a production-ready protocol that enables **privacy-preserving audit verification** on Moca Chain. Auditors issue verifiable credentials, projects generate zero-knowledge proofs, and investors verify audit status—all while keeping sensitive vulnerability details private.
 
 ### ✨ Key Features
 
@@ -133,8 +133,8 @@ GET    /metrics                      # Real-time metrics
 
 ```bash
 # Clone repository
-git clone https://github.com/ayushsaklani-min/ZkVerify.git
-cd ZkVerify
+git clone https://github.com/ayushsaklani-min/polyverify.git
+cd polyverify
 
 # Install all dependencies
 npm run install:all
@@ -341,7 +341,7 @@ curl http://localhost:10000/metrics
 
 ### Production URLs
 - **Frontend:** [https://zk-verify.vercel.app](https://zk-verify.vercel.app)
-- **Backend:** [https://zkverify-backend.onrender.com](https://zkverify-backend.onrender.com)
+- **Backend:** [https://polverify-backend.onrender.com](https://polverify-backend.onrender.com)
 - **Network:** Moca Chain Testnet (Chain ID: 222888)
 - **Explorer:** [https://testnet-scan.mocachain.org](https://testnet-scan.mocachain.org)
 
@@ -376,7 +376,7 @@ Deployer:        0x48E8750b87278227b5BBd53cae998e6083910bd9
 ## 📁 Repository Structure
 
 ```
-zkVerify/
+Polverify/
 ├── contracts/              # Smart contracts
 │   ├── AuditorRegistry.sol
 │   ├── ProofVerifier.sol
@@ -485,7 +485,7 @@ chore: Maintenance tasks
 
 **DO NOT** open public issues for security vulnerabilities.
 
-Email: **security@zkverify.io**
+Email: **security@polverify.io**
 
 ### Security Measures
 
@@ -535,7 +535,7 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 ```
 MIT License
 
-Copyright (c) 2025 zkVerify Team
+Copyright (c) 2025 Polverify Team
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -566,22 +566,22 @@ copies or substantial portions of the Software.
 
 ### 🔗 Quick Links
 
-[![Website](https://img.shields.io/badge/Website-zkverify.io-blue?style=for-the-badge)](https://zk-verify.vercel.app)
-[![GitHub](https://img.shields.io/badge/GitHub-Repository-black?style=for-the-badge&logo=github)](https://github.com/ayushsaklani-min/ZkVerify)
-[![Twitter](https://img.shields.io/badge/Twitter-Follow-1DA1F2?style=for-the-badge&logo=twitter)](https://twitter.com/zkverify)
-[![Discord](https://img.shields.io/badge/Discord-Join-5865F2?style=for-the-badge&logo=discord)](https://discord.gg/zkverify)
+[![Website](https://img.shields.io/badge/Website-polverify.io-blue?style=for-the-badge)](https://zk-verify.vercel.app)
+[![GitHub](https://img.shields.io/badge/GitHub-Repository-black?style=for-the-badge&logo=github)](https://github.com/ayushsaklani-min/polyverify)
+[![Twitter](https://img.shields.io/badge/Twitter-Follow-1DA1F2?style=for-the-badge&logo=twitter)](https://twitter.com/polverify)
+[![Discord](https://img.shields.io/badge/Discord-Join-5865F2?style=for-the-badge&logo=discord)](https://discord.gg/polverify)
 
 ### 📧 Get in Touch
 
-**General Inquiries:** [GitHub Issues](https://github.com/ayushsaklani-min/ZkVerify/issues)  
-**Security:** security@zkverify.io  
-**Partnerships:** partnerships@zkverify.io
+**General Inquiries:** [GitHub Issues](https://github.com/ayushsaklani-min/polyverify/issues)  
+**Security:** security@polverify.io  
+**Partnerships:** partnerships@polverify.io
 
 ---
 
 ### ⭐ Star us on GitHub!
 
-If you find zkVerify useful, please consider giving us a star ⭐
+If you find Polverify useful, please consider giving us a star ⭐
 
 **Built with ❤️ for Moca Buildathon 2025**
 
@@ -591,9 +591,9 @@ If you find zkVerify useful, please consider giving us a star ⭐
 
 <div align="center">
 
-### 🎯 Why zkVerify?
+### 🎯 Why Polverify?
 
-| Feature | zkVerify | Traditional Audits |
+| Feature | Polverify | Traditional Audits |
 |---------|----------|-------------------|
 | **Privacy** | ✅ ZK Proofs | ❌ Public Reports |
 | **Verification** | ✅ On-Chain | ❌ Off-Chain Claims |
@@ -601,6 +601,6 @@ If you find zkVerify useful, please consider giving us a star ⭐
 | **Transparency** | ✅ Real-Time Metrics | ❌ Limited Visibility |
 | **Automation** | ✅ Smart Contracts | ❌ Manual Process |
 
-**zkVerify: The Future of Audit Verification** 🚀
+**Polverify: The Future of Audit Verification** 🚀
 
 </div>

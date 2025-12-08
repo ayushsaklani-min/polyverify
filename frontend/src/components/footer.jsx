@@ -17,7 +17,7 @@ export function Footer() {
                 <Shield className="w-6 h-6 text-white" />
               </div>
               <span className="text-xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
-                zkVerify
+                Polverify
               </span>
             </Link>
             <p className="text-gray-400 text-sm leading-relaxed max-w-xs">
@@ -70,7 +70,7 @@ export function Footer() {
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="text-gray-500 text-sm">
-            © 2024 zkVerify. Built for Polygon Amoy Testnet.
+            © 2024 Polverify. Built for Polygon Amoy Testnet.
           </div>
           <div className="flex items-center gap-4">
             <a

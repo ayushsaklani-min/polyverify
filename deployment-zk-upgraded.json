@@ -1,0 +1,16 @@
+{
+  "network": "amoy",
+  "chainId": 80002,
+  "deployer": "0x48E8750b87278227b5BBd53cae998e6083910bd9",
+  "timestamp": "2025-12-08T14:21:49.961Z",
+  "contracts": {
+    "AuditorRegistry": "0x7b0b816a4c39F94480171EC3C0790a865bE9A034",
+    "ZKVerifierGroth16": "0xa530fF6ED7AC7FF8C8A03210Bd98A3D2C3d87F6b",
+    "ProofVerifier": "0x72aE92367Ee4D800B793C64EEccD079F16B8Cd1c",
+    "Groth16Verifier": "0xFAbfC7598eA861da329Ba19DA6fd11e6A2911383"
+  },
+  "config": {
+    "trustedProver": "0x48E8750b87278227b5BBd53cae998e6083910bd9",
+    "groth16Enabled": true
+  }
+}

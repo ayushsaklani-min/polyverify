@@ -30,7 +30,7 @@ export default function AuditorPage() {
   const [checkingApproval, setCheckingApproval] = useState(true)
 
   useEffect(() => {
-    const cached = localStorage.getItem('zkverify:lastCredential')
+    const cached = localStorage.getItem('polverify:lastCredential')
     if (cached) setCredential(JSON.parse(cached))
   }, [])
 
@@ -120,7 +120,7 @@ export default function AuditorPage() {
       }
       setCredential(cred)
       setIsAnchored(false)
-      localStorage.setItem('zkverify:lastCredential', JSON.stringify(cred))
+      localStorage.setItem('polverify:lastCredential', JSON.stringify(cred))
       toast.success('✅ Credential issued successfully!')
     } catch (e) {
       console.error('[Auditor] Issue failed', e)

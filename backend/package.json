@@ -18,6 +18,8 @@
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^9.0.0",
-    "nodemailer": "^7.0.10"
+    "nodemailer": "^7.0.10",
+    "snarkjs": "^0.7.3",
+    "ffjavascript": "^0.3.0"
   }
 }

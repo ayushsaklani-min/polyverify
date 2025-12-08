@@ -1,5 +1,5 @@
 /**
- * zkVerify — Polygon Amoy | Auditable Zero-Knowledge Verification Layer
+ * Polverify — Polygon Amoy | Auditable Zero-Knowledge Verification Layer
  * 
  * Hardhat configuration for contract compilation, testing, and deployment.
  * Supports Polygon Amoy Testnet and localhost networks.

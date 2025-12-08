@@ -9,7 +9,7 @@ import { ErrorBoundary } from '@/components/error-boundary'
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 
 export const metadata = {
-  title: 'zkVerify - Verifiable Smart Contract Audit Credentials',
+  title: 'Polverify - Verifiable Smart Contract Audit Credentials',
   description: 'Prove your smart contracts have been audited without revealing private audit reports using zero-knowledge proofs.',
   keywords: 'blockchain, audit, verification, zk, credentials, smart contracts, polygon amoy',
 }

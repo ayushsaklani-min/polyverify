@@ -114,7 +114,7 @@ export default function MetricsPage() {
           Network Transparency & Metrics
         </motion.h1>
         <p className="text-white/60 max-w-2xl mx-auto">
-          Live instrumentation of zkVerify. Track proof latency, verification gas costs, and system health in real time.
+          Live instrumentation of Polverify. Track proof latency, verification gas costs, and system health in real time.
         </p>
         <div className="flex items-center justify-center gap-4 pt-4">
           <GradientButton onClick={fetchMetrics} isLoading={loading} className="flex items-center gap-2">

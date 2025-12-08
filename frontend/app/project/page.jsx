@@ -23,7 +23,7 @@ export default function ProjectPage() {
   const [txResult, setTxResult] = useState(null)
 
   useEffect(() => {
-    const cached = localStorage.getItem('zkverify:lastCredential')
+    const cached = localStorage.getItem('polverify:lastCredential')
     if (cached) setCredential(JSON.parse(cached))
   }, [])
 

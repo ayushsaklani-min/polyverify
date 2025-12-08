@@ -220,8 +220,20 @@ router.post('/', async (req, res) => {
  */
 router.get('/pending', async (_req, res) => {
   try {
-    const pending = await Application.find({ status: 'pending' }).sort({ createdAt: -1 });
-    res.json({ success: true, count: pending.length, applications: pending });
+    const pending = await Application.find({ status: 'pending' }).sort({ createdAt: -1 }).lean();
+    
+    // Transform database fields to match frontend expectations
+    const transformedApplications = pending.map(app => ({
+      ...app,
+      walletAddress: app.wallet,
+      githubHandle: app.github,
+      code4renaHandle: app.code4rena,
+      immunefiHandle: app.immunefi,
+      submittedAt: app.createdAt,
+      reviewedAt: app.updatedAt
+    }));
+    
+    res.json({ success: true, count: transformedApplications.length, applications: transformedApplications });
   } catch (error) {
     console.error('Error fetching applications:', error);
     res.status(500).json({ success: false, error: 'Failed to fetch applications', message: error.message });

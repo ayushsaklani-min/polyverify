@@ -5,6 +5,18 @@
  * Handles admin authentication, reputation scoring, and metrics collection.
  */
 
+// Load environment variables FIRST, before any other requires that depend on them
+const path = require("path");
+const envPath = path.join(__dirname, ".env");
+const result = require("dotenv").config({ path: envPath });
+
+if (result.error) {
+  console.error("[server] Error loading .env file:", result.error);
+} else {
+  console.log("[server] ✓ Environment variables loaded from:", envPath);
+  console.log("[server] ADMIN_ADDRESS:", process.env.ADMIN_ADDRESS ? "✓ Set" : "✗ Not found");
+}
+
 const express = require("express");
 const helmet = require("helmet");
 const cors = require("cors");
@@ -24,8 +36,6 @@ const auditorsRouter = require("./routes/auditors");
 const adminRouter = require("./routes/admin");
 const applyRouter = require("./routes/apply");
 const proofsRouter = require("./routes/proofs");
-
-require("dotenv").config();
 
 const app = express();
 
@@ -246,7 +256,15 @@ function logRoutes() {
 }
 
 app.get('/health', (_req, res) => {
-  res.json({ status: 'ok', network: 'polygon-amoy', rpc: RPC_URL, contract: CONTRACT_ADDRESS, verifier: ZK_VERIFIER_ADDRESS })
+  res.json({ status: 'ok', network: 'polygon-amoy', rpc: RPC_URL, contract: CONTRACT_ADDRESS, verifier: ZK_VERIFIER_ADDRESS, adminAddress: adminAuth.adminAddress })
+})
+
+app.get('/api/admin/address', (_req, res) => {
+  const adminAddress = adminAuth.adminAddress
+  if (!adminAddress) {
+    return res.status(500).json({ error: 'Admin address not configured' })
+  }
+  res.json({ adminAddress })
 })
 
 app.get('/', (_req, res) => {

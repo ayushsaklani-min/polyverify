@@ -8,10 +8,11 @@ const metrics = require("../services/metricsService");
 const ProofVerifierArtifact = require("../abi/ProofVerifier.json");
 const ProofVerifierABI = Array.isArray(ProofVerifierArtifact) ? ProofVerifierArtifact : (ProofVerifierArtifact.abi || ProofVerifierArtifact);
 const { signProofPayload } = require("../utils/signProofPayload");
+const zkProofService = require("../services/zkProofService");
 
 router.post("/generate", async (req, res) => {
   try {
-    const { credentialId } = req.body;
+    const { credentialId, vulnerabilityCount, severityScore } = req.body;
     if (!credentialId) return res.status(400).json({ error: "credentialId required" });
 
     const cred = await Credential.findOne({ credentialId });
@@ -34,27 +35,66 @@ router.post("/generate", async (req, res) => {
       return res.status(400).json({ error: "invalid_auditor_address" });
     }
 
-    // Generate proof bytes (dummy for now, should be from actual ZK proof generation)
-    const proofBytes = "0x" + crypto.randomBytes(256).toString("hex");
-    
-    // Generate public inputs: [project as uint256, auditor as uint256, summaryHash as uint256]
-    // Convert addresses to uint256 and summaryHash (bytes32) to uint256
-    const projectUint256 = BigInt(ethers.getAddress(project)).toString();
-    const auditorUint256 = BigInt(ethers.getAddress(auditor)).toString();
-    let summaryHashUint256;
+    // Try to generate REAL ZK proof if circuit is available
+    let proofBytes;
+    let publicInputs;
+    let summaryHash;
+    let useRealZK = false;
+
     try {
-      if (cred.summaryHash && cred.summaryHash.startsWith("0x")) {
-        summaryHashUint256 = BigInt(cred.summaryHash).toString();
-      } else if (cred.summaryHash) {
-        summaryHashUint256 = BigInt("0x" + cred.summaryHash).toString();
+      // Initialize ZK service
+      const zkAvailable = await zkProofService.initialize();
+      
+      if (zkAvailable && zkProofService.isAvailable()) {
+        console.log("🔐 Generating REAL zero-knowledge proof...");
+        
+        // Generate real ZK proof
+        const zkResult = await zkProofService.generateProof({
+          projectAddress: project,
+          auditorAddress: auditor,
+          auditReportHash: cred.summaryHash || ethers.keccak256(ethers.toUtf8Bytes("audit-report")),
+          vulnerabilityCount: vulnerabilityCount || 0,
+          severityScore: severityScore || 0,
+          nonce: Date.now()
+        });
+
+        // Encode proof as bytes
+        proofBytes = zkProofService.encodeProofAsBytes(zkResult.proof);
+        
+        // Public signals from ZK proof: [projectAddress, auditorAddress, summaryHash]
+        publicInputs = zkResult.publicSignals.map(s => s.toString());
+        summaryHash = zkResult.summaryHash;
+        
+        useRealZK = true;
+        console.log("✅ Real ZK proof generated successfully!");
       } else {
+        throw new Error("ZK circuit not available");
+      }
+    } catch (zkError) {
+      console.warn("⚠️  ZK proof generation failed, falling back to mock proof:", zkError.message);
+      
+      // Fallback to mock proof (for backward compatibility)
+      proofBytes = "0x" + crypto.randomBytes(256).toString("hex");
+      
+      // Generate public inputs: [project as uint256, auditor as uint256, summaryHash as uint256]
+      const projectUint256 = BigInt(ethers.getAddress(project)).toString();
+      const auditorUint256 = BigInt(ethers.getAddress(auditor)).toString();
+      let summaryHashUint256;
+      try {
+        if (cred.summaryHash && cred.summaryHash.startsWith("0x")) {
+          summaryHashUint256 = BigInt(cred.summaryHash).toString();
+        } else if (cred.summaryHash) {
+          summaryHashUint256 = BigInt("0x" + cred.summaryHash).toString();
+        } else {
+          summaryHashUint256 = "0";
+        }
+      } catch (e) {
         summaryHashUint256 = "0";
       }
-    } catch (e) {
-      summaryHashUint256 = "0";
+      
+      publicInputs = [projectUint256, auditorUint256, summaryHashUint256];
+      summaryHash = cred.summaryHash;
     }
-    
-    const publicInputs = [projectUint256, auditorUint256, summaryHashUint256];
 
     // Generate REAL cryptographic signature using TRUSTED_PROVER_PRIVATE_KEY
     // This matches EXACTLY the contract's verifyProof() logic
@@ -108,7 +148,8 @@ router.post("/generate", async (req, res) => {
       proofSizeBytes: proofBytes.length / 2 - 1, // Hex string length / 2 - 1 for 0x
       success: true,
       project: cred.subject,
-      auditor: cred.issuer
+      auditor: cred.issuer,
+      proofType: useRealZK ? "Groth16-ZK-SNARK" : "Mock-Signature"
     });
 
     res.json({
@@ -117,7 +158,9 @@ router.post("/generate", async (req, res) => {
       project: record.project,
       auditor: record.auditor,
       status,
-      credentialId: record.credentialId
+      credentialId: record.credentialId,
+      proofType: useRealZK ? "Groth16-ZK-SNARK" : "Mock-Signature",
+      zkProofAvailable: zkProofService.isAvailable()
     });
   } catch (err) {
     console.error("proof generation error", err);

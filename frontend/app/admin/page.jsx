@@ -39,14 +39,28 @@ export default function AdminPage() {
   const [authenticating, setAuthenticating] = useState(false)
   const [requiresAuth, setRequiresAuth] = useState(false)
   const [expectedAdminAddress, setExpectedAdminAddress] = useState(null)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    const stored = typeof window !== 'undefined' ? window.localStorage.getItem('zkverify:adminToken') : null
+    setMounted(true)
+    const stored = typeof window !== 'undefined' ? window.localStorage.getItem('polverify:adminToken') : null
     if (stored) {
       setToken(stored)
     } else {
       setRequiresAuth(true)
     }
+    
+    // Fetch the configured admin address from backend
+    fetch(`${BACKEND_URL}/api/admin/address`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.adminAddress) {
+          setExpectedAdminAddress(data.adminAddress)
+        }
+      })
+      .catch(err => {
+        console.warn('Failed to fetch admin address:', err)
+      })
   }, [])
 
   useEffect(() => {
@@ -102,7 +116,7 @@ export default function AdminPage() {
     setToken(null)
     setRequiresAuth(true)
     if (typeof window !== 'undefined') {
-      window.localStorage.removeItem('zkverify:adminToken')
+      window.localStorage.removeItem('polverify:adminToken')
     }
     toast.error('Admin authentication expired. Please authenticate again.')
   }
@@ -119,7 +133,7 @@ export default function AdminPage() {
       const bodyHash = ethers.keccak256(ethers.toUtf8Bytes(JSON.stringify({})))
       const digest = ethers.solidityPackedKeccak256(
         ['string', 'string', 'string', 'uint256', 'bytes32'],
-        ['zkverify-admin', 'POST', '/api/admin/login', timestamp, bodyHash]
+        ['polverify-admin', 'POST', '/api/admin/login', timestamp, bodyHash]
       )
       const signature = await signer.signMessage(ethers.getBytes(digest))
 
@@ -133,7 +147,10 @@ export default function AdminPage() {
         const data = await res.json().catch(() => ({}))
         const errorMsg = data?.error || 'Authentication failed'
         if (errorMsg.toLowerCase().includes('invalid') || errorMsg.toLowerCase().includes('mismatch')) {
-          throw new Error(`Wrong wallet connected. Please connect the admin wallet (0x48E8...bd9) and try again.`)
+          const adminHint = (mounted && expectedAdminAddress)
+            ? `${expectedAdminAddress.slice(0, 6)}...${expectedAdminAddress.slice(-4)}`
+            : 'admin wallet'
+          throw new Error(`Wrong wallet connected. Please connect the admin wallet (${adminHint}) and try again.`)
         }
         throw new Error(errorMsg)
       }
@@ -142,7 +159,7 @@ export default function AdminPage() {
       setToken(data.token)
       setRequiresAuth(false)
       if (typeof window !== 'undefined') {
-        window.localStorage.setItem('zkverify:adminToken', data.token)
+        window.localStorage.setItem('polverify:adminToken', data.token)
       }
       toast.success('Admin authentication successful')
       fetchApplications()
@@ -278,7 +295,7 @@ export default function AdminPage() {
           </div>
         </div>
         <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Admin Dashboard</h1>
-        <p className="text-white/60 text-lg">Review, approve, and audit the zkVerify trust registry</p>
+        <p className="text-white/60 text-lg">Review, approve, and audit the Polverify trust registry</p>
         {!isAuthenticated && (
           <div className="mt-6 flex justify-center">
             <GlassCard className="p-6 max-w-lg w-full">
@@ -288,11 +305,20 @@ export default function AdminPage() {
                 </div>
                 <div>
                   <h2 className="text-lg font-semibold text-white">Admin Authentication Required</h2>
-                  <p className="text-sm text-white/50">Connect the admin wallet (0x48E8...bd9) and sign a challenge to unlock moderation actions.</p>
+                  <p className="text-sm text-white/50">
+                    {mounted && expectedAdminAddress 
+                      ? `Connect the admin wallet (${expectedAdminAddress.slice(0, 6)}...${expectedAdminAddress.slice(-4)}) and sign a challenge to unlock moderation actions.`
+                      : 'Connect the admin wallet and sign a challenge to unlock moderation actions.'}
+                  </p>
                   {address && (
-                    <p className="text-xs text-yellow-300/70 mt-2">
-                      Currently connected: {address.slice(0, 6)}...{address.slice(-4)}
-                    </p>
+                    <div className="mt-2">
+                      <p className="text-xs text-yellow-300/70">
+                        Currently connected: {address.slice(0, 6)}...{address.slice(-4)}
+                      </p>
+                      {mounted && expectedAdminAddress && address.toLowerCase() !== expectedAdminAddress.toLowerCase() && (
+                        <p className="text-xs text-red-300 mt-1">⚠️ Wrong wallet. Expected admin address.</p>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>
@@ -301,7 +327,7 @@ export default function AdminPage() {
                   {authenticating ? 'Authenticating...' : 'Authenticate'}
                 </GradientButton>
                 <p className="text-xs text-white/40 text-left">
-                  zkVerify issues a short-lived JWT once your signature is verified via EIP-191. Tokens are stored locally for convenience.
+                  Polverify issues a short-lived JWT once your signature is verified via EIP-191. Tokens are stored locally for convenience.
                 </p>
               </div>
             </GlassCard>

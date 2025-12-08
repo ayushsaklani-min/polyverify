@@ -1,10 +1,11 @@
 {
-  "name": "zkverify",
+  "name": "polverify",
   "version": "1.0.0",
   "description": "Verifiable Smart Contract Audit Credential Platform",
   "main": "index.js",
   "scripts": {
     "deploy:polygon": "npx hardhat run scripts/polygon-deploy.js --network amoy",
+    "deploy:zk": "npx hardhat run scripts/deploy-zk-upgraded.js --network amoy",
     "verify:polygon": "npx hardhat verify --network amoy",
     "start:backend": "cd backend && npm run dev",
     "start:frontend": "cd frontend && npm run dev",
@@ -13,13 +14,17 @@
     "approve:auditor": "node scripts/approve-auditor.js",
     "test": "hardhat test",
     "compile": "hardhat compile",
+    "compile:circuits": "cd circuits && npm run compile",
+    "setup:circuits": "cd circuits && npm run setup",
+    "test:circuits": "cd circuits && npm test",
+    "setup:zk": "npm run compile:circuits && npm run setup:circuits",
     "frontend:dev": "cd frontend && npm run dev",
     "frontend:build": "cd frontend && npm run build",
     "backend:dev": "cd backend && npm run dev",
-    "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install"
+    "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install && cd ../circuits && npm install"
   },
   "keywords": ["blockchain", "zk", "verification", "audit", "credentials"],
-  "author": "zkVerify Team",
+  "author": "Polverify Team",
   "license": "MIT",
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^4.0.0",

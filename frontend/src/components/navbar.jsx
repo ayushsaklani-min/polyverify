@@ -34,7 +34,7 @@ export function Navbar() {
               </div>
             </div>
             <span className="text-2xl font-bold bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-              zkVerify
+              Polverify
             </span>
           </Link>
 

@@ -141,7 +141,7 @@ export default function ApplyPage() {
               </div>
               <h2 className="text-3xl font-bold text-white mb-4">Application Submitted!</h2>
               <p className="text-white/70 text-lg mb-6">
-                Thank you for applying to become a verified auditor on zkVerify.
+                Thank you for applying to become a verified auditor on Polverify.
               </p>
               <div className="bg-indigo-500/10 border border-indigo-400/20 rounded-lg p-6 mb-6 text-left">
                 <h3 className="text-white font-semibold mb-3">What happens next?</h3>
@@ -211,7 +211,7 @@ export default function ApplyPage() {
           Apply as Auditor
         </h1>
         <p className="text-white/60 text-lg">
-          Join zkVerify as a verified security auditor and start issuing credentials
+          Join Polverify as a verified security auditor and start issuing credentials
         </p>
         
         {/* Application Status Banner */}

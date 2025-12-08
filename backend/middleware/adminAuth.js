@@ -21,15 +21,33 @@ function normalizeKey(raw) {
 }
 
 function resolveAdminAddress() {
+  // Check ADMIN_ADDRESS first
   if (process.env.ADMIN_ADDRESS) {
-    return process.env.ADMIN_ADDRESS.toLowerCase();
+    const addr = process.env.ADMIN_ADDRESS.trim();
+    if (ethers.isAddress(addr)) {
+      console.log('[adminAuth] Using ADMIN_ADDRESS from environment:', addr);
+      return addr.toLowerCase();
+    } else {
+      console.error('[adminAuth] Invalid ADMIN_ADDRESS format:', addr);
+    }
   }
+  
+  // Check ADMIN_PUBLIC_ADDRESS
   if (process.env.ADMIN_PUBLIC_ADDRESS) {
-    return process.env.ADMIN_PUBLIC_ADDRESS.toLowerCase();
+    const addr = process.env.ADMIN_PUBLIC_ADDRESS.trim();
+    if (ethers.isAddress(addr)) {
+      console.log('[adminAuth] Using ADMIN_PUBLIC_ADDRESS from environment:', addr);
+      return addr.toLowerCase();
+    } else {
+      console.error('[adminAuth] Invalid ADMIN_PUBLIC_ADDRESS format:', addr);
+    }
   }
+  
+  // Fallback to deriving from private key
   const key = normalizeKey(process.env.ADMIN_PRIVATE_KEY || process.env.DEPLOYER_PRIVATE_KEY);
   if (!key) {
     console.error('[adminAuth] No ADMIN_ADDRESS, ADMIN_PUBLIC_ADDRESS, or ADMIN_PRIVATE_KEY found');
+    console.error('[adminAuth] Available env vars:', Object.keys(process.env).filter(k => k.includes('ADMIN') || k.includes('DEPLOYER')).join(', '));
     return null;
   }
   try {
@@ -43,7 +61,11 @@ function resolveAdminAddress() {
 }
 
 const ADMIN_ADDRESS = resolveAdminAddress();
-console.log('[adminAuth] Admin address loaded:', ADMIN_ADDRESS);
+if (ADMIN_ADDRESS) {
+  console.log('[adminAuth] ✓ Admin address loaded:', ADMIN_ADDRESS);
+} else {
+  console.error('[adminAuth] ✗ Admin address not configured!');
+}
 
 function computeMessage(method, path, timestamp, body) {
   const bodyHash = ethers.keccak256(ethers.toUtf8Bytes(JSON.stringify(body || {})));
