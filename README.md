@@ -583,7 +583,7 @@ copies or substantial portions of the Software.
 
 If you find Polverify useful, please consider giving us a star ⭐
 
-**Built with ❤️ for Moca Buildathon 2025**
+**Built with ❤️ for polygon Buildathon 2025**
 
 </div>
 

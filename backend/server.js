@@ -1,5 +1,5 @@
 /**
- * zkVerify — Polygon Amoy | Auditable Zero-Knowledge Verification Layer
+ * Polverify — Polygon Amoy | Auditable Zero-Knowledge Verification Layer
  * 
  * Express.js API server for credential issuance, proof generation, and verification.
  * Handles admin authentication, reputation scoring, and metrics collection.
@@ -45,6 +45,8 @@ app.use(
     origin: [
       "http://localhost:3000",
       "http://localhost:3001",
+      "https://polverify.vercel.app",
+      "https://polverify-git-main-ayushsaklani-mins-projects.vercel.app",
       process.env.FRONTEND_URL,
       process.env.NEXT_PUBLIC_WEBSITE_URL,
     ].filter(Boolean),
@@ -268,7 +270,7 @@ app.get('/api/admin/address', (_req, res) => {
 })
 
 app.get('/', (_req, res) => {
-  res.send('zkVerify backend running. See /health and /api')
+  res.send('Polverify backend running. See /health and /api')
 })
 
 app.get('/api', (_req, res) => {
@@ -440,7 +442,7 @@ async function issueCredentialHandler(req, res) {
       const digest = ethers.keccak256(
         abiCoder.encode(
           ['string', 'bytes32', 'address', 'address', 'bytes32'],
-          ['zkverify:credential:v1', onChainId, record.issuer, record.subject, record.summaryHash]
+          ['polverify:credential:v1', onChainId, record.issuer, record.subject, record.summaryHash]
         )
       )
       serverSignature = await proofSigner.signMessage(ethers.getBytes(digest))
