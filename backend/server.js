@@ -11,11 +11,21 @@ const envPath = path.join(__dirname, ".env");
 const result = require("dotenv").config({ path: envPath });
 
 if (result.error) {
-  console.error("[server] Error loading .env file:", result.error);
+  // .env file not found - this is OK in production (Render uses environment variables)
+  if (process.env.NODE_ENV === 'production') {
+    console.log("[server] Running in production mode - using environment variables from hosting platform");
+  } else {
+    console.warn("[server] Warning: .env file not found:", result.error.message);
+  }
 } else {
   console.log("[server] ✓ Environment variables loaded from:", envPath);
-  console.log("[server] ADMIN_ADDRESS:", process.env.ADMIN_ADDRESS ? "✓ Set" : "✗ Not found");
 }
+
+console.log("[server] Environment check:");
+console.log("  - NODE_ENV:", process.env.NODE_ENV || "development");
+console.log("  - ADMIN_ADDRESS:", process.env.ADMIN_ADDRESS ? "✓ Set" : "✗ Not found");
+console.log("  - MONGO_URI:", process.env.MONGO_URI ? "✓ Set" : "✗ Not found");
+console.log("  - RPC_URL:", process.env.RPC_URL ? "✓ Set" : "✗ Not found");
 
 const express = require("express");
 const helmet = require("helmet");
