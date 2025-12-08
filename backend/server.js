@@ -45,6 +45,8 @@ app.use(
     origin: [
       "http://localhost:3000",
       "http://localhost:3001",
+      "https://polyverify-g5qb.vercel.app",
+      "https://polyverify.vercel.app",
       "https://polverify.vercel.app",
       "https://polverify-git-main-ayushsaklani-mins-projects.vercel.app",
       process.env.FRONTEND_URL,
