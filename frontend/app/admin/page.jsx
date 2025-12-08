@@ -49,8 +49,10 @@ export default function AdminPage() {
     } else {
       setRequiresAuth(true)
     }
+
     
     // Fetch the configured admin address from backend
+    console.log('[Admin Page] Backend URL:', BACKEND_URL)
     fetch(`${BACKEND_URL}/api/admin/address`)
       .then(res => res.json())
       .then(data => {
@@ -59,7 +61,8 @@ export default function AdminPage() {
         }
       })
       .catch(err => {
-        console.warn('Failed to fetch admin address:', err)
+        console.error('[Admin Page] Failed to fetch admin address:', err)
+        toast.error('Cannot connect to backend. Check console for details.')
       })
   }, [])
 
@@ -136,6 +139,10 @@ export default function AdminPage() {
         ['polverify-admin', 'POST', '/api/admin/login', timestamp, bodyHash]
       )
       const signature = await signer.signMessage(ethers.getBytes(digest))
+
+      console.log('[Admin Auth] Backend URL:', BACKEND_URL)
+      console.log('[Admin Auth] Timestamp:', timestamp)
+      console.log('[Admin Auth] Signature:', signature)
 
       const res = await fetch(`${BACKEND_URL}/api/admin/login`, {
         method: 'POST',
