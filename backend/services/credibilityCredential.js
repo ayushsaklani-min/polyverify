@@ -1,5 +1,5 @@
 /**
- * zkVerify — Polygon Amoy | Auditable Zero-Knowledge Verification Layer
+ * Polverify — Polygon Amoy | Auditable Zero-Knowledge Verification Layer
  * 
  * Credibility Credential Service: Issues verifiable credibility credentials
  * to auditors upon approval via AIR Kit integration.
@@ -49,7 +49,7 @@ class CredibilityCredentialService {
         website_url: process.env.WEBSITE_URL || process.env.NEXT_PUBLIC_WEBSITE_URL,
         status: 'Approved',
         metadata: {
-          name: 'zkVerify Auditor Credibility Credential',
+          name: 'Polverify Auditor Credibility Credential',
           issuer_address: process.env.ADMIN_ADDRESS || process.env.DEPLOYER_PRIVATE_KEY,
           credibility_score: credibilityScore,
           credibility_level: credibilityLevel,

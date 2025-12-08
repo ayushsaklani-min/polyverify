@@ -1,5 +1,5 @@
 /**
- * zkVerify — Polygon Amoy | Auditable Zero-Knowledge Verification Layer
+ * Polverify — Polygon Amoy | Auditable Zero-Knowledge Verification Layer
  * 
  * Contract Detection Service: Automatically extracts contract addresses from
  * auditor's work history (GitHub repos, Code4rena findings, Immunefi submissions).

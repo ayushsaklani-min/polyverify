@@ -1,5 +1,5 @@
 /**
- * zkVerify — Polygon Amoy | Auditable Zero-Knowledge Verification Layer
+ * Polverify — Polygon Amoy | Auditable Zero-Knowledge Verification Layer
  * 
  * Application submission routes for auditor onboarding.
  * Handles application storage and admin notifications.
@@ -104,9 +104,9 @@ async function notifyAdmin(application) {
 
     if (hasEmailConfig) {
       const mailOptions = {
-        from: process.env.SMTP_FROM || process.env.GMAIL_USER || 'noreply@zkverify.com',
+        from: process.env.SMTP_FROM || process.env.GMAIL_USER || 'noreply@polverify.com',
         to: adminEmail,
-        subject: '🔔 New Auditor Application - zkVerify',
+        subject: '🔔 New Auditor Application - Polverify',
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h2 style="color: #6366f1;">New Auditor Application Received</h2>
@@ -125,7 +125,7 @@ async function notifyAdmin(application) {
               </a>
             </div>
             <p style="color: #666; font-size: 12px;">
-              This is an automated notification from zkVerify. Please review and approve or reject the application.
+              This is an automated notification from Polverify. Please review and approve or reject the application.
             </p>
           </div>
         `,

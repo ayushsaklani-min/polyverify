@@ -1,5 +1,5 @@
 /**
- * zkVerify — Polygon Amoy | Auditable Zero-Knowledge Verification Layer
+ * Polverify — Polygon Amoy | Auditable Zero-Knowledge Verification Layer
  * 
  * Admin API routes for auditor approval, rejection, and application management.
  * Requires admin authentication via middleware.

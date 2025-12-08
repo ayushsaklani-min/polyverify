@@ -1,5 +1,5 @@
 /**
- * zkVerify — Polygon Amoy | Auditable Zero-Knowledge Verification Layer
+ * Polverify — Polygon Amoy | Auditable Zero-Knowledge Verification Layer
  * 
  * Admin authentication middleware using EIP-191 signatures and JWT tokens.
  * Validates admin wallet signatures for protected routes.
@@ -8,7 +8,7 @@
 const { ethers } = require('ethers');
 const jwt = require('jsonwebtoken');
 
-const SIGNING_DOMAIN = 'zkverify-admin';
+const SIGNING_DOMAIN = 'polverify-admin';
 const MAX_CLOCK_SKEW_MS = 5 * 60 * 1000; // 5 minutes
 
 const ADMIN_JWT_SECRET = process.env.ADMIN_JWT_SECRET || 'change-me-in-prod';

@@ -1,5 +1,5 @@
 /**
- * zkVerify — Polygon Amoy | Auditable Zero-Knowledge Verification Layer
+ * Polverify — Polygon Amoy | Auditable Zero-Knowledge Verification Layer
  * 
  * Reputation Service: Fetches and aggregates auditor reputation data from
  * GitHub, Code4rena, and Immunefi. Calculates credibility scores (0-100).
@@ -217,7 +217,7 @@ class ReputationService {
     if (this.credibilitySigner && auditorInfo.address) {
       const digest = ethers.solidityPackedKeccak256(
         ['string', 'address', 'uint8'],
-        ['zkverify:credibility:v1', auditorInfo.address, credibilityScore]
+        ['polverify:credibility:v1', auditorInfo.address, credibilityScore]
       );
       signature = await this.credibilitySigner.signMessage(ethers.getBytes(digest));
     }

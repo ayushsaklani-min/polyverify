@@ -1,5 +1,5 @@
 /**
- * zkVerify — Polygon Amoy | Auditable Zero-Knowledge Verification Layer
+ * Polverify — Polygon Amoy | Auditable Zero-Knowledge Verification Layer
  * 
  * Reputation Fetcher: Automated script to periodically update auditor credibility scores
  * on-chain based on reputation data from external platforms.
