@@ -42,16 +42,33 @@ const app = express();
 app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
 app.use(
   cors({
-    origin: [
-      "http://localhost:3000",
-      "http://localhost:3001",
-      "https://polyverify-g5qb.vercel.app",
-      "https://polyverify.vercel.app",
-      "https://polverify.vercel.app",
-      "https://polverify-git-main-ayushsaklani-mins-projects.vercel.app",
-      process.env.FRONTEND_URL,
-      process.env.NEXT_PUBLIC_WEBSITE_URL,
-    ].filter(Boolean),
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+      
+      const allowedOrigins = [
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "https://polyverify-g5qb.vercel.app",
+        "https://polyverify.vercel.app",
+        "https://polverify.vercel.app",
+        "https://polverify-git-main-ayushsaklani-mins-projects.vercel.app",
+        process.env.FRONTEND_URL,
+        process.env.NEXT_PUBLIC_WEBSITE_URL,
+      ].filter(Boolean);
+      
+      // Allow all Vercel preview deployments
+      if (origin.includes('.vercel.app')) {
+        return callback(null, true);
+      }
+      
+      if (allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else {
+        console.warn('[CORS] Blocked origin:', origin);
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
   })
 );
