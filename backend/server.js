@@ -49,6 +49,9 @@ const proofsRouter = require("./routes/proofs");
 
 const app = express();
 
+// Trust proxy - required for Render and other hosting platforms
+app.set('trust proxy', 1);
+
 app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
 app.use(
   cors({

@@ -26,6 +26,27 @@ const connectDB = async (mongoURI, retries = 3, delay = 2000) => {
   // Disable Mongoose buffering globally to prevent timeout issues
   mongoose.set('bufferCommands', false);
 
+  // Validate MongoDB URI format
+  if (!mongoURI || typeof mongoURI !== 'string') {
+    console.error('[MongoDB] Invalid MONGO_URI: URI is missing or not a string');
+    console.error('[MongoDB] Received:', typeof mongoURI, mongoURI);
+    process.exit(1);
+  }
+  
+  // Check if URI accidentally includes the variable name
+  if (mongoURI.startsWith('MONGO_URI=')) {
+    console.error('[MongoDB] ERROR: MONGO_URI environment variable contains "MONGO_URI=" prefix');
+    console.error('[MongoDB] The value should be just the connection string, not "MONGO_URI=mongodb+srv://..."');
+    console.error('[MongoDB] Please fix this in your Render environment variables');
+    process.exit(1);
+  }
+  
+  if (!mongoURI.startsWith('mongodb://') && !mongoURI.startsWith('mongodb+srv://')) {
+    console.error('[MongoDB] Invalid MONGO_URI format: Must start with "mongodb://" or "mongodb+srv://"');
+    console.error('[MongoDB] Received:', mongoURI.substring(0, 50) + '...');
+    process.exit(1);
+  }
+
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
       console.log(`[MongoDB] Connection attempt ${attempt}/${retries}...`);
