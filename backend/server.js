@@ -433,28 +433,53 @@ async function issueCredentialHandler(req, res) {
       console.warn('Could not verify auditor approval:', err.message)
     }
 
-    const payload = {
-      partner_id: process.env.PARTNER_ID || process.env.NEXT_PUBLIC_PARTNER_ID,
-      issuer_did: process.env.ISSUER_DID || process.env.NEXT_PUBLIC_ISSUER_DID,
-      subject_did: normalizedSubject,
-      verifier_did: process.env.VERIFIER_DID || process.env.NEXT_PUBLIC_VERIFIER_DID,
-      credential_type: 'SmartContractAudit',
-      logo_url: process.env.LOGO_URL || process.env.NEXT_PUBLIC_LOGO_URL,
-      website_url: process.env.WEBSITE_URL || process.env.NEXT_PUBLIC_WEBSITE_URL,
-      summary_hash: summaryHash,
-      status,
-      metadata: {
-        name: process.env.PARTNER_NAME || process.env.NEXT_PUBLIC_PARTNER_NAME,
-        issuer_address: normalizedIssuer
-      },
-      jwks_url: process.env.JWKS_URL || process.env.NEXT_PUBLIC_JWKS_URL
-    }
+    // Try to use AIR Kit if configured, otherwise create credential locally
+    let credentialId, data = {};
+    
+    const hasAirKitConfig = process.env.PARTNER_ID && process.env.ISSUER_DID && process.env.VERIFIER_DID;
+    
+    if (hasAirKitConfig) {
+      try {
+        const payload = {
+          partner_id: process.env.PARTNER_ID,
+          issuer_did: process.env.ISSUER_DID,
+          subject_did: normalizedSubject,
+          verifier_did: process.env.VERIFIER_DID,
+          credential_type: 'SmartContractAudit',
+          logo_url: process.env.LOGO_URL || process.env.NEXT_PUBLIC_LOGO_URL,
+          website_url: process.env.WEBSITE_URL || process.env.NEXT_PUBLIC_WEBSITE_URL,
+          summary_hash: summaryHash,
+          status,
+          metadata: {
+            name: process.env.PARTNER_NAME || process.env.NEXT_PUBLIC_PARTNER_NAME || 'Polverify',
+            issuer_address: normalizedIssuer
+          },
+          jwks_url: process.env.JWKS_URL || process.env.NEXT_PUBLIC_JWKS_URL
+        }
 
-    const response = await air3Client.post('/issuer/credentials', payload)
-    const data = response.data || {}
-    const credentialId = data.credential_id || data.id
+        const response = await air3Client.post('/issuer/credentials', payload)
+        data = response.data || {}
+        credentialId = data.credential_id || data.id
+        console.log('[Credential] Issued via AIR Kit:', credentialId)
+      } catch (airKitError) {
+        console.warn('[Credential] AIR Kit unavailable, falling back to local credential:', airKitError.message)
+        // Fall through to local credential creation
+        credentialId = null;
+      }
+    }
+    
+    // Fallback: Create credential locally if AIR Kit is not configured or failed
     if (!credentialId) {
-      return res.status(502).json({ error: 'Credential issuance response missing credential_id' })
+      credentialId = `local-${randomUUID()}`;
+      data = {
+        credential_id: credentialId,
+        issued_at: new Date().toISOString(),
+        issuer: normalizedIssuer,
+        subject: normalizedSubject,
+        status,
+        type: 'SmartContractAudit'
+      };
+      console.log('[Credential] Created locally (AIR Kit not available):', credentialId)
     }
 
     const onChainId = ethers.keccak256(ethers.toUtf8Bytes(credentialId))
