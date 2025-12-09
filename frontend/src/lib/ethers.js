@@ -20,6 +20,10 @@ export async function getSigner() {
 
 export async function getContractWithSigner() {
   const signer = await getSigner()
+  console.log('[ethers.js] CONTRACT_ADDRESS:', CONTRACT_ADDRESS)
+  if (!CONTRACT_ADDRESS || CONTRACT_ADDRESS === '') {
+    throw new Error('CONTRACT_ADDRESS is not configured. Please check your environment variables.')
+  }
   return new ethers.Contract(CONTRACT_ADDRESS, abi, signer)
 }
 

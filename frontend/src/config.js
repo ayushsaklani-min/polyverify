@@ -5,6 +5,13 @@ const env = typeof process !== 'undefined' ? process.env : {};
 export const AUDITOR_REGISTRY_ADDRESS = env.NEXT_PUBLIC_AUDITOR_REGISTRY_ADDRESS || '';
 export const PROOF_VERIFIER_ADDRESS = env.NEXT_PUBLIC_PROOF_VERIFIER_ADDRESS || '';
 export const CONTRACT_ADDRESS = PROOF_VERIFIER_ADDRESS; // Legacy compatibility
+
+// Debug logging
+if (typeof window !== 'undefined') {
+  console.log('[config.js] Environment variables loaded:');
+  console.log('  PROOF_VERIFIER_ADDRESS:', PROOF_VERIFIER_ADDRESS);
+  console.log('  CONTRACT_ADDRESS:', CONTRACT_ADDRESS);
+}
 export const ZK_VERIFIER_ADDRESS = env.NEXT_PUBLIC_ZK_VERIFIER_ADDRESS || '';
 export const CHAIN_ID = Number(env.NEXT_PUBLIC_CHAIN_ID || 80002);
 export const RPC_URL = env.NEXT_PUBLIC_RPC_URL || 'https://rpc-amoy.polygon.technology';
