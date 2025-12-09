@@ -244,27 +244,7 @@ function verifySignedProof(signature, credentialId, proofId, issuer, subject, pr
   }
 }
 
-const air3Client = axios.create({
-  baseURL: process.env.API_BASE || process.env.NEXT_PUBLIC_API_BASE || 'https://api.sandbox.air3.com',
-  headers: {
-    'x-partner-id': process.env.PARTNER_ID || process.env.NEXT_PUBLIC_PARTNER_ID,
-    'Content-Type': 'application/json'
-  }
-})
-
-function isNetworkError(err) {
-  const code = err?.code || err?.errno || err?.response?.status
-  const msg = (err?.message || '').toLowerCase()
-  return (
-    code === 'ENOTFOUND' ||
-    code === 'ECONNREFUSED' ||
-    code === 'ETIMEDOUT' ||
-    code === 'ECONNABORTED' ||
-    msg.includes('enotfound') ||
-    msg.includes('network error') ||
-    msg.includes('getaddrinfo')
-  )
-}
+// AIR Kit removed - using local credential generation
 
 function logRoutes() {
   return [
@@ -433,54 +413,14 @@ async function issueCredentialHandler(req, res) {
       console.warn('Could not verify auditor approval:', err.message)
     }
 
-    // Try to use AIR Kit if configured, otherwise create credential locally
-    let credentialId, data = {};
+    // Generate credential locally (no external dependencies)
+    const credentialId = `polverify-${randomUUID()}`;
+    const issuedAt = new Date().toISOString();
     
-    const hasAirKitConfig = process.env.PARTNER_ID && process.env.ISSUER_DID && process.env.VERIFIER_DID;
-    
-    if (hasAirKitConfig) {
-      try {
-        const payload = {
-          partner_id: process.env.PARTNER_ID,
-          issuer_did: process.env.ISSUER_DID,
-          subject_did: normalizedSubject,
-          verifier_did: process.env.VERIFIER_DID,
-          credential_type: 'SmartContractAudit',
-          logo_url: process.env.LOGO_URL || process.env.NEXT_PUBLIC_LOGO_URL,
-          website_url: process.env.WEBSITE_URL || process.env.NEXT_PUBLIC_WEBSITE_URL,
-          summary_hash: summaryHash,
-          status,
-          metadata: {
-            name: process.env.PARTNER_NAME || process.env.NEXT_PUBLIC_PARTNER_NAME || 'Polverify',
-            issuer_address: normalizedIssuer
-          },
-          jwks_url: process.env.JWKS_URL || process.env.NEXT_PUBLIC_JWKS_URL
-        }
-
-        const response = await air3Client.post('/issuer/credentials', payload)
-        data = response.data || {}
-        credentialId = data.credential_id || data.id
-        console.log('[Credential] Issued via AIR Kit:', credentialId)
-      } catch (airKitError) {
-        console.warn('[Credential] AIR Kit unavailable, falling back to local credential:', airKitError.message)
-        // Fall through to local credential creation
-        credentialId = null;
-      }
-    }
-    
-    // Fallback: Create credential locally if AIR Kit is not configured or failed
-    if (!credentialId) {
-      credentialId = `local-${randomUUID()}`;
-      data = {
-        credential_id: credentialId,
-        issued_at: new Date().toISOString(),
-        issuer: normalizedIssuer,
-        subject: normalizedSubject,
-        status,
-        type: 'SmartContractAudit'
-      };
-      console.log('[Credential] Created locally (AIR Kit not available):', credentialId)
-    }
+    console.log('[Credential] Issuing credential:', credentialId);
+    console.log('[Credential] Issuer:', normalizedIssuer);
+    console.log('[Credential] Subject:', normalizedSubject);
+    console.log('[Credential] Status:', status);
 
     const onChainId = ethers.keccak256(ethers.toUtf8Bytes(credentialId))
 
@@ -491,7 +431,7 @@ async function issueCredentialHandler(req, res) {
       subject: normalizedSubject,
       summaryHash: ethers.hexlify(summaryHash),
       status,
-      issuedAt: data.issued_at || new Date().toISOString()
+      issuedAt
     })
 
     let serverSignature = null
@@ -506,13 +446,16 @@ async function issueCredentialHandler(req, res) {
     }
 
     res.json({
-      ...data,
+      success: true,
       credential_id: credentialId,
       on_chain_id: onChainId,
       issuer: normalizedIssuer,
       subject: normalizedSubject,
       summary_hash: summaryHash,
-      server_signature: serverSignature
+      status,
+      issued_at: issuedAt,
+      server_signature: serverSignature,
+      type: 'SmartContractAudit'
     })
   } catch (err) {
     console.error('issueCredential error', err?.response?.data || err.message)
