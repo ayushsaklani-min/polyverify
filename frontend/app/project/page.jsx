@@ -83,28 +83,26 @@ export default function ProjectPage() {
     setIsSubmitting(true)
     try {
       const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'
-      const projectAddress = address
-      const auditorAddress = credential?.issuer
-      const status = credential?.status || 'Verified'
-
-      const res = await fetch(`${BACKEND_URL}/api/verifyProof`, {
+      
+      // Use the correct endpoint: /api/proofs/verify with proofId
+      const res = await fetch(`${BACKEND_URL}/api/proofs/verify`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ proof, project: projectAddress, auditor: auditorAddress, status })
+        body: JSON.stringify({ proofId: proof.proofId })
       })
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
-        throw new Error(data?.error || 'Backend verification failed')
+        throw new Error(data?.error || data?.details || 'Backend verification failed')
       }
 
       const data = await res.json()
-      if (!data.ok) {
-        throw new Error(data?.error || 'Proof verification failed')
+      if (!data.success) {
+        throw new Error(data?.error || data?.details || 'Proof verification failed')
       }
 
       setVerified(true)
-      setTxResult({ txHash: data.txHash, gasUsed: data.gasUsed })
+      setTxResult({ txHash: data.txnHash, gasUsed: data.gasUsed })
       toast.success('🎉 Verification recorded on-chain!')
 
       // Trigger confetti
@@ -116,7 +114,7 @@ export default function ProjectPage() {
       })
     } catch (e) {
       console.error(e)
-      toast.error('❌ Submission failed')
+      toast.error(`❌ ${e.message}`)
       setVerified(false)
       setTxResult(null)
     } finally {
