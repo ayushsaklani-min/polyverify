@@ -2,7 +2,7 @@
 
 # 🔐 Polverify
 
-### Privacy-Preserving Audit Verification Layer for Moca Chain
+### Privacy-Preserving Audit Verification Layer for Polygon
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Solidity](https://img.shields.io/badge/Solidity-0.8.20-blue.svg)](https://soliditylang.org/)
@@ -19,7 +19,7 @@
 
 ## 🌟 Overview
 
-Polverify is a production-ready protocol that enables **privacy-preserving audit verification** on Moca Chain. Auditors issue verifiable credentials, projects generate zero-knowledge proofs, and investors verify audit status—all while keeping sensitive vulnerability details private.
+Polverify is a production-ready protocol that enables **privacy-preserving audit verification** on Polygon. Auditors issue verifiable credentials, projects generate zero-knowledge proofs, and investors verify audit status—all while keeping sensitive vulnerability details private.
 
 ### ✨ Key Features
 
@@ -28,7 +28,7 @@ Polverify is a production-ready protocol that enables **privacy-preserving audit
 🎯 **Auditor Trust Layer** - Reputation scoring from GitHub, Code4rena, Immunefi  
 📊 **Real-Time Metrics** - Transparent dashboard with proof latency and gas usage  
 🔐 **Secure Authentication** - EIP-191 signatures + JWT for admin operations  
-🚀 **Production Ready** - Deployed on Moca Testnet with full CI/CD pipeline
+🚀 **Production Ready** - Deployed on Polygon with full CI/CD pipeline
 
 ---
 
@@ -127,7 +127,7 @@ GET    /metrics                      # Real-time metrics
 ### Prerequisites
 - Node.js 18+
 - MetaMask or compatible Web3 wallet
-- Moca Chain Testnet RPC access
+- Polygon RPC access
 
 ### Installation
 
@@ -148,7 +148,7 @@ cp .env.example .env
 
 ```bash
 # Blockchain Configuration
-RPC_URL=https://testnet-rpc.mocachain.org
+RPC_URL=https://rpc-amoy.polygon.technology
 DEPLOYER_PRIVATE_KEY=your_private_key
 ADMIN_PRIVATE_KEY=your_admin_key
 PROOF_SIGNER_PRIVATE_KEY=your_proof_signer_key
@@ -159,8 +159,8 @@ PROOF_VERIFIER_ADDRESS=0x...
 ZK_VERIFIER_ADDRESS=0x...
 
 # Frontend Configuration
-NEXT_PUBLIC_RPC_URL=https://testnet-rpc.mocachain.org
-NEXT_PUBLIC_CHAIN_ID=222888
+NEXT_PUBLIC_RPC_URL=https://rpc-amoy.polygon.technology
+NEXT_PUBLIC_CHAIN_ID=80002
 NEXT_PUBLIC_BACKEND_URL=http://localhost:10000
 ```
 
@@ -173,7 +173,7 @@ npm run compile
 # Run tests
 npm test
 
-# Deploy contracts (Moca Testnet)
+# Deploy contracts (Polygon)
 npm run deploy:upgraded
 
 # Start backend (port 10000)
@@ -342,10 +342,10 @@ curl http://localhost:10000/metrics
 ### Production URLs
 - **Frontend:** [https://zk-verify.vercel.app](https://zk-verify.vercel.app)
 - **Backend:** [https://polverify-backend.onrender.com](https://polverify-backend.onrender.com)
-- **Network:** Moca Chain Testnet (Chain ID: 222888)
-- **Explorer:** [https://testnet-scan.mocachain.org](https://testnet-scan.mocachain.org)
+- **Network:** Polygon Amoy Testnet (Chain ID: 80002)
+- **Explorer:** [https://amoy.polygonscan.com](https://amoy.polygonscan.com)
 
-### Contract Addresses (Testnet)
+### Contract Addresses (Polygon Amoy Testnet)
 ```
 AuditorRegistry: 0x3933E40028ca7DF666e71Fbb68232be04C499F61
 ProofVerifier:   0xC988cbc4E9120d8Fd970648F0B93E90c99392ab0
@@ -552,7 +552,7 @@ copies or substantial portions of the Software.
 
 ## 🙏 Acknowledgments
 
-- **Moca Chain** - For the buildathon and testnet infrastructure
+- **Polygon** - For the buildathon and blockchain infrastructure
 - **AIR Kit** - For verifiable credential infrastructure
 - **OpenZeppelin** - For secure smart contract libraries
 - **Hardhat** - For development environment
@@ -583,7 +583,7 @@ copies or substantial portions of the Software.
 
 If you find Polverify useful, please consider giving us a star ⭐
 
-**Built with ❤️ for polygon Buildathon 2025**
+**Built with ❤️ for Polygon Buildathon 2025**
 
 </div>
 
