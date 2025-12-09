@@ -46,15 +46,16 @@ export default function ProjectPage() {
       if (r.ok) {
         const data = await r.json()
         p = {
-          proofId: data.proof_id,
-          credentialId: credential.credential_id || credential.id,
-          credentialOnChainId: data.on_chain_id || null,
-          on_chain_id: data.on_chain_id || null,
+          proofId: data.proofId,
+          credentialId: data.credentialId || credential.credential_id || credential.id,
+          project: data.project,
+          auditor: data.auditor,
+          status: data.status,
           credential,
-          valid: data.valid !== false,
+          valid: data.success !== false,
           generatedAt: Date.now(),
-          proofData: data.proof_data || {},
-          stats: data.stats || null
+          proofType: data.proofType,
+          zkProofAvailable: data.zkProofAvailable
         }
       } else {
         // fallback to direct AIR3 call (may fail if AIR3 unreachable)
