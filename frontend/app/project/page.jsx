@@ -85,7 +85,33 @@ export default function ProjectPage() {
     try {
       const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'
       
-      // Use the correct endpoint: /api/proofs/verify with proofId
+      // Step 1: Anchor the credential first (if not already anchored)
+      // Pass the proofId so the backend can use the correct summary hash from the proof
+      toast.loading('Anchoring credential on-chain...', { id: 'anchor' })
+      const anchorRes = await fetch(`${BACKEND_URL}/api/proofs/anchor-credential`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          credentialId: proof.credentialId,
+          proofId: proof.proofId 
+        })
+      })
+
+      if (!anchorRes.ok) {
+        const anchorData = await anchorRes.json().catch(() => ({}))
+        toast.dismiss('anchor')
+        throw new Error(anchorData?.error || anchorData?.details || 'Failed to anchor credential')
+      }
+
+      const anchorData = await anchorRes.json()
+      if (anchorData.alreadyAnchored) {
+        toast.success('Credential already anchored', { id: 'anchor' })
+      } else {
+        toast.success('Credential anchored successfully', { id: 'anchor' })
+      }
+
+      // Step 2: Verify the proof
+      toast.loading('Verifying proof on-chain...', { id: 'verify' })
       const res = await fetch(`${BACKEND_URL}/api/proofs/verify`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -94,14 +120,17 @@ export default function ProjectPage() {
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
+        toast.dismiss('verify')
         throw new Error(data?.error || data?.details || 'Backend verification failed')
       }
 
       const data = await res.json()
       if (!data.success) {
+        toast.dismiss('verify')
         throw new Error(data?.error || data?.details || 'Proof verification failed')
       }
 
+      toast.success('Proof verified!', { id: 'verify' })
       setVerified(true)
       setTxResult({ txHash: data.txnHash, gasUsed: data.gasUsed })
       toast.success('🎉 Verification recorded on-chain!')

@@ -103,7 +103,8 @@ export default function AuditorPage() {
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
         console.error('[Auditor] Issue error response', data)
-        throw new Error(data?.error || `Issue failed (${res.status})`)
+        console.error('[Auditor] Request was:', { issuer: address, subject: project, summaryHash, status, issuerSignature })
+        throw new Error(data?.error || data?.details?.[0]?.msg || `Issue failed (${res.status})`)
       }
       const data = await res.json()
       console.log('[Auditor] Issue success', data)
@@ -142,34 +143,33 @@ export default function AuditorPage() {
 
     setIsAnchoring(true)
     try {
-      const contract = await getContractWithSigner()
-      const signer = await getSigner()
-      const idBytes32 = credential.onChainId || uuidToBytes32(credential.id)
+      // Use backend API to anchor the credential
+      // This is more secure as it uses the server's private key
+      const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:10000'
       
-      // Create message hash for signing: keccak256(abi.encodePacked(id, subject, summaryHash))
-      // This must match the contract's verification logic exactly
-      const messageHash = ethers.keccak256(
-        ethers.solidityPacked(['bytes32', 'address', 'bytes32'], [
-          idBytes32,
-          credential.subject || project,
-          credential.summaryHash
-        ])
-      )
+      const response = await fetch(`${BACKEND_URL}/api/proofs/anchor-credential`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          credentialId: credential.credential_id || credential.id
+        })
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || error.details || 'Failed to anchor credential')
+      }
+
+      const data = await response.json()
       
-      // Sign the message hash with Ethereum message prefix (\x19Ethereum Signed Message:\n32)
-      // The signMessage() function automatically adds this prefix
-      const signature = await signer.signMessage(ethers.getBytes(messageHash))
-      
-      // Use issueCredential with signature instead of anchorCredential
-      const tx = await contract.issueCredential(
-        idBytes32,
-        credential.subject,
-        credential.summaryHash,
-        signature
-      )
-      await tx.wait()
       setIsAnchored(true)
-      toast.success('🎉 Credential anchored on Polygon Amoy!')
+      
+      if (data.alreadyAnchored) {
+        toast.success('✅ Credential was already anchored on-chain')
+      } else {
+        toast.success('🎉 Credential anchored on Polygon Amoy!')
+        console.log('Anchor transaction:', data.txHash)
+      }
     } catch (e) {
       console.error(e)
       toast.error(`❌ Failed to anchor credential: ${e.message}`)

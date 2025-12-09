@@ -7,7 +7,7 @@ export const CONTRACT_ADDRESS = PROOF_VERIFIER_ADDRESS; // Legacy compatibility
 export const ZK_VERIFIER_ADDRESS = process.env.NEXT_PUBLIC_ZK_VERIFIER_ADDRESS || '';
 export const CHAIN_ID = Number(process.env.NEXT_PUBLIC_CHAIN_ID || 80002);
 export const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL || 'https://rpc-amoy.polygon.technology';
-export const EXPLORER_URL = process.env.NEXT_PUBLIC_EXPLORER_URL || 'https://testnet-scan.polygon.technology';
+export const EXPLORER_URL = process.env.NEXT_PUBLIC_EXPLORER_URL || 'https://amoy.polygonscan.com';
 export const DEPLOYER_ADDRESS = process.env.NEXT_PUBLIC_DEPLOYER_ADDRESS || '';
 export const DEPLOYMENT_TIMESTAMP = Number(process.env.NEXT_PUBLIC_DEPLOYMENT_TIMESTAMP || Date.now());
 

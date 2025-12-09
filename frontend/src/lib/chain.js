@@ -8,7 +8,7 @@ export const polygonChain = {
     public: { http: ['https://rpc-amoy.polygon.technology'] },
   },
   blockExplorers: {
-    default: { name: 'PolygonScan', url: 'https://testnet-scan.polygon.technology' },
+    default: { name: 'PolygonScan', url: 'https://amoy.polygonscan.com' },
   },
 };
 

@@ -3,7 +3,7 @@
 import { Shield, Github, Twitter, Globe } from 'lucide-react'
 import Link from 'next/link'
 
-const explorerUrl = process.env.NEXT_PUBLIC_EXPLORER_URL || 'https://testnet-scan.polygon.technology'
+const explorerUrl = process.env.NEXT_PUBLIC_EXPLORER_URL || 'https://amoy.polygonscan.com'
 
 export function Footer() {
   return (

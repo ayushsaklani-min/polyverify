@@ -187,7 +187,8 @@ router.post("/verify", async (req, res) => {
     }
 
     const rpcUrl = process.env.RPC_URL;
-    const signerKey = process.env.PROOF_SIGNER_PRIVATE_KEY;
+    // Use ADMIN_PRIVATE_KEY if PROOF_SIGNER has insufficient funds
+    const signerKey = process.env.ADMIN_PRIVATE_KEY || process.env.PROOF_SIGNER_PRIVATE_KEY;
     const verifierAddress = process.env.PROOF_VERIFIER_ADDRESS;
     const zkVerifierAddress = process.env.ZK_VERIFIER_ADDRESS;
     const trustedProverAddress = process.env.TRUSTED_PROVER_ADDRESS;
@@ -460,6 +461,223 @@ router.post("/verify", async (req, res) => {
   } catch (err) {
     console.error("proofs/verify error", err);
     return res.status(500).json({ success: false, error: "internal_error", details: err.message });
+  }
+});
+
+// Add test credential creation endpoint (for testing only)
+router.post("/create-test-credential", async (req, res) => {
+  try {
+    const { auditor, project } = req.body;
+
+    if (!auditor || !project) {
+      return res.status(400).json({ 
+        success: false, 
+        error: "auditor and project addresses required" 
+      });
+    }
+
+    // Validate addresses
+    if (!ethers.isAddress(auditor) || !ethers.isAddress(project)) {
+      return res.status(400).json({ 
+        success: false, 
+        error: "invalid address format" 
+      });
+    }
+
+    const credentialId = `polverify-test-${Date.now()}`;
+    
+    // Generate a simple audit report hash for testing
+    const auditReportHash = ethers.keccak256(ethers.toUtf8Bytes(`audit-report-${Date.now()}`));
+    
+    // For test credentials, use the audit report hash as the summary hash
+    // This matches what the ZK proof will use
+    const summaryHash = auditReportHash;
+
+    const credential = new Credential({
+      credentialId,
+      issuer: ethers.getAddress(auditor),
+      subject: ethers.getAddress(project),
+      summaryHash,
+      status: 'active',
+      issuedAt: new Date(),
+      metadata: {
+        vulnerabilityCount: 5,
+        severityScore: 75,
+        auditDate: new Date().toISOString(),
+        testCredential: true,
+        auditReportHash: auditReportHash
+      }
+    });
+
+    await credential.save({
+      writeConcern: { w: 'majority', wtimeout: 10000 },
+      maxTimeMS: 30000
+    });
+
+    console.log('✅ Test credential created:', credentialId);
+
+    return res.json({
+      success: true,
+      message: "Test credential created",
+      credential: {
+        credentialId,
+        issuer: credential.issuer,
+        subject: credential.subject,
+        summaryHash: credential.summaryHash,
+        status: credential.status
+      }
+    });
+  } catch (err) {
+    console.error("create-test-credential error", err);
+    return res.status(500).json({ 
+      success: false, 
+      error: "internal_error", 
+      details: err.message 
+    });
+  }
+});
+
+// Add anchor credential endpoint
+router.post("/anchor-credential", async (req, res) => {
+  try {
+    const { credentialId, proofId } = req.body;
+
+    if (!credentialId) {
+      return res.status(400).json({ success: false, error: "credentialId required" });
+    }
+
+    // Find credential in database
+    const credential = await Credential.findOne({ credentialId });
+    if (!credential) {
+      return res.status(404).json({ success: false, error: "credential_not_found" });
+    }
+    
+    // If proofId is provided, get the summary hash from the proof record
+    // This ensures we anchor with the same summary hash that's in the proof
+    let summaryHashToUse = credential.summaryHash;
+    if (proofId) {
+      const proofRecord = await ProofRecord.findOne({ proofId });
+      if (proofRecord && proofRecord.publicInputs && proofRecord.publicInputs.length >= 3) {
+        // The third public input is the summary hash
+        summaryHashToUse = '0x' + BigInt(proofRecord.publicInputs[2]).toString(16).padStart(64, '0');
+        console.log(`📝 Using summary hash from proof: ${summaryHashToUse}`);
+      }
+    }
+
+    const rpcUrl = process.env.RPC_URL;
+    const signerKey = process.env.ADMIN_PRIVATE_KEY || process.env.DEPLOYER_PRIVATE_KEY;
+    const proofVerifierAddress = process.env.PROOF_VERIFIER_ADDRESS;
+
+    if (!rpcUrl || !signerKey || !proofVerifierAddress) {
+      return res.status(500).json({ success: false, error: "server_misconfigured" });
+    }
+
+    const provider = new ethers.JsonRpcProvider(rpcUrl);
+    const signer = new ethers.Wallet(signerKey.startsWith("0x") ? signerKey : `0x${signerKey}`, provider);
+    const proofVerifier = new ethers.Contract(proofVerifierAddress, ProofVerifierABI, signer);
+
+    // Convert credentialId to bytes32
+    let credentialIdBytes32;
+    try {
+      if (credentialId.startsWith("0x")) {
+        credentialIdBytes32 = ethers.zeroPadValue(credentialId, 32);
+      } else if (credentialId.startsWith("polverify-")) {
+        // UUID format - convert to bytes32
+        credentialIdBytes32 = ethers.keccak256(ethers.toUtf8Bytes(credentialId));
+      } else {
+        credentialIdBytes32 = ethers.zeroPadValue("0x" + credentialId, 32);
+      }
+    } catch (e) {
+      credentialIdBytes32 = ethers.keccak256(ethers.toUtf8Bytes(credentialId));
+    }
+
+    // Check if already anchored
+    const isAnchored = await proofVerifier.isCredentialAnchored(credentialIdBytes32);
+    if (isAnchored) {
+      return res.json({
+        success: true,
+        message: "Credential already anchored",
+        credentialId: credentialIdBytes32,
+        alreadyAnchored: true
+      });
+    }
+
+    // Prepare summaryHash (use the one from proof if available, otherwise from credential)
+    let summaryHashBytes32;
+    if (summaryHashToUse) {
+      if (summaryHashToUse.startsWith("0x")) {
+        summaryHashBytes32 = ethers.zeroPadValue(summaryHashToUse, 32);
+      } else {
+        summaryHashBytes32 = ethers.zeroPadValue("0x" + summaryHashToUse, 32);
+      }
+    } else {
+      // Generate a default summary hash if not present
+      summaryHashBytes32 = ethers.keccak256(ethers.toUtf8Bytes(`${credential.issuer}-${credential.subject}`));
+    }
+
+    const normalizedIssuer = ethers.getAddress(credential.issuer);
+    const normalizedSubject = ethers.getAddress(credential.subject);
+
+    // Generate signature for issueCredential
+    const messageHash = ethers.keccak256(
+      ethers.solidityPacked(
+        ["bytes32", "address", "bytes32"],
+        [credentialIdBytes32, normalizedSubject, summaryHashBytes32]
+      )
+    );
+    
+    const prefix = "\x19Ethereum Signed Message:\n32";
+    const prefixedMessage = ethers.concat([
+      ethers.toUtf8Bytes(prefix),
+      ethers.getBytes(messageHash)
+    ]);
+    const ethSignedMessageHash = ethers.keccak256(prefixedMessage);
+    
+    const signingKey = new ethers.SigningKey(signerKey.startsWith("0x") ? signerKey : `0x${signerKey}`);
+    const signature = signingKey.sign(ethSignedMessageHash);
+    
+    const credentialSignature = ethers.concat([
+      signature.r,
+      signature.s,
+      ethers.toBeArray(signature.v)
+    ]);
+
+    console.log(`📝 Issuing and anchoring credential ${credentialIdBytes32}...`);
+    
+    // Issue credential (which also anchors it)
+    const tx = await proofVerifier.issueCredential(
+      credentialIdBytes32,
+      normalizedSubject,
+      summaryHashBytes32,
+      credentialSignature
+    );
+
+    console.log(`   Transaction hash: ${tx.hash}`);
+    const receipt = await tx.wait();
+    console.log(`✅ Credential issued and anchored at block ${receipt.blockNumber}`);
+
+    // Verify anchoring
+    const verified = await proofVerifier.isCredentialAnchored(credentialIdBytes32);
+    if (!verified) {
+      throw new Error("Credential anchor verification failed");
+    }
+
+    return res.json({
+      success: true,
+      message: "Credential anchored successfully",
+      credentialId: credentialIdBytes32,
+      txHash: receipt.hash,
+      blockNumber: receipt.blockNumber,
+      alreadyAnchored: false
+    });
+  } catch (err) {
+    console.error("anchor-credential error", err);
+    return res.status(500).json({ 
+      success: false, 
+      error: "internal_error", 
+      details: err.message,
+      reason: err.reason || null
+    });
   }
 });
 
