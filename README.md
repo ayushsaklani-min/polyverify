@@ -575,7 +575,7 @@ copies or substantial portions of the Software.
 
 **General Inquiries:** [GitHub Issues](https://github.com/ayushsaklani-min/polyverify/issues)  
 **Security:** security@polverify.io  
-**Partnerships:** partnerships@polverify.io
+
 
 ---
 
