@@ -60,8 +60,8 @@ coverage/
 *.lcov
 .jest/
 
-# Deployment artifacts (keep deployment-info-polygon.json for reference)
-deployment-info.json
+# Deployment artifacts
+deployment-*.json
 pending-applications.json
 metrics.json
 backup-json/
@@ -88,3 +88,13 @@ typechain-types/
 *.pid
 *.seed
 *.pid.lock
+
+# Development and test outputs
+compile_output.txt
+test_output.txt
+*.output.txt
+
+# Development-only directories
+circuits/
+security/
+tools/

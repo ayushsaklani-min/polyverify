@@ -1,10 +1,9 @@
 {
-  "network": "amoy",
-  "chainId": 80002,
-  "deployer": "0x48E8750b87278227b5BBd53cae998e6083910bd9",
-  "AuditorRegistry": "0xd0925e9A9841d2f95e8b243128fC999Ca02e403a",
-  "ZKVerifier": "0xb6EE12215E8219056A2578F64a9227dACf0Ae023",
-  "ProofVerifier": "0x94FA34403bC67E70777348156431a432bF3E8730",
-  "deployedAt": "2025-01-27T00:00:00.000Z"
+  "network": "mainnet",
+  "chainId": 137,
+  "deployer": "0x1aB7d5eCBe2c551eBfFdfA06661B77cc60dbd425",
+  "AuditorRegistry": "0x811969acFaC9bF1B8E3742B786d492227b160400",
+  "ZKVerifier": "0x39d003c748CAE756F11a0C4C702c0b70d2523457",
+  "ProofVerifier": "0x4f1Fb45b8F1BE945d5f76df05F92c1810c027663",
+  "deployedAt": "2026-01-25T06:19:11.290Z"
 }
-

@@ -29,6 +29,11 @@ module.exports = {
       url: process.env.RPC_URL || "https://rpc-amoy.polygon.technology",
       chainId: Number(process.env.CHAIN_ID) || 80002,
       accounts: deployerKey ? [`0x${deployerKey}`] : []
+    },
+    mainnet: {
+      url: process.env.RPC_URL || "https://polygon-rpc.com",
+      chainId: Number(process.env.CHAIN_ID) || 137,
+      accounts: deployerKey ? [`0x${deployerKey}`] : []
     }
   },
   paths: {

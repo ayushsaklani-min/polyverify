@@ -94,14 +94,14 @@ contract ZKVerifierGroth16 {
         if (groth16Verifier != address(0) && payload.proof.length >= 256) {
             bool groth16Valid = _verifyGroth16Proof(payload.proof, publicInputs);
             if (groth16Valid) {
-                uint256 gasUsed = gasBefore - gasleft();
-                bytes32 inputsHash = keccak256(abi.encode(publicInputs));
+                uint256 gasConsumed = gasBefore - gasleft();
+                bytes32 publicInputsHash = keccak256(abi.encode(publicInputs));
                 emit ProofVerified(
                     payload.proofId,
                     payload.subject,
                     payload.issuer,
-                    gasUsed,
-                    inputsHash,
+                    gasConsumed,
+                    publicInputsHash,
                     "Groth16"
                 );
                 return true;

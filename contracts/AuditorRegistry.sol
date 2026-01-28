@@ -98,6 +98,8 @@ contract AuditorRegistry {
         string calldata code4renaHandle,
         string calldata immunefiHandle
     ) external onlyApprovedAuditor {
+        require(bytes(githubHandle).length > 0, "GitHub handle required");
+        
         AuditorInfo storage info = auditors[msg.sender];
         info.githubHandle = githubHandle;
         info.code4renaHandle = code4renaHandle;
@@ -112,6 +114,7 @@ contract AuditorRegistry {
      * @param score New credibility score
      */
     function updateCredibilityScore(address auditor, uint256 score) external onlyAdmin {
+        require(auditor != address(0), "Invalid auditor address");
         require(auditors[auditor].isApproved, "Auditor not approved");
         
         auditors[auditor].credibilityScore = score;
@@ -125,6 +128,7 @@ contract AuditorRegistry {
      */
     function incrementCredentialCount(address auditor) external {
         require(msg.sender == proofVerifier, "Only ProofVerifier can increment");
+        require(auditor != address(0), "Invalid auditor address");
         require(auditors[auditor].isApproved, "Auditor not approved");
         
         auditors[auditor].credentialCount++;

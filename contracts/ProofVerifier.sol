@@ -25,10 +25,9 @@ interface IZKVerifier {
  * @notice This contract handles credential anchoring and verification status
  */
 contract ProofVerifier {
-    // State variables
+    address public admin;
     IAuditorRegistry public auditorRegistry;
     IZKVerifier public zkVerifier;
-
     mapping(address => bool) public verified;
     mapping(bytes32 => bool) public credentialAnchored;
     mapping(bytes32 => bool) public proofValidated;
@@ -76,7 +75,11 @@ contract ProofVerifier {
         uint256 timestamp
     );
     
-    // Modifiers
+    modifier onlyAdmin() {
+        require(msg.sender == admin, "Only admin can perform this action");
+        _;
+    }
+
     modifier onlyValidAddress(address addr) {
         require(addr != address(0), "Invalid address");
         _;
@@ -92,6 +95,7 @@ contract ProofVerifier {
     }
     
     constructor(address _auditorRegistry, address _zkVerifier) {
+        admin = msg.sender;
         auditorRegistry = IAuditorRegistry(_auditorRegistry);
         if (_zkVerifier != address(0)) {
             zkVerifier = IZKVerifier(_zkVerifier);
@@ -104,8 +108,8 @@ contract ProofVerifier {
         uint256 timestamp;
     }
 
-    function setZKVerifier(address _zkVerifier) external {
-        require(msg.sender == address(auditorRegistry) || msg.sender == address(this), "Unauthorized verifier update");
+    function setZKVerifier(address _zkVerifier) external onlyAdmin {
+        require(_zkVerifier != address(0), "Invalid verifier address");
         zkVerifier = IZKVerifier(_zkVerifier);
     }
 
@@ -183,9 +187,18 @@ contract ProofVerifier {
         bytes32 summaryHash,
         address issuer
     ) external onlyValidAddress(issuer) onlyApprovedAuditor {
+        require(issuer == msg.sender, "Can only anchor for yourself");
         require(!credentialAnchored[id], "Credential already anchored");
         require(id != bytes32(0), "Invalid credential ID");
         require(summaryHash != bytes32(0), "Invalid summary hash");
+        
+        credentials[id] = CredentialData({
+            id: id,
+            issuer: issuer,
+            summaryHash: summaryHash,
+            timestamp: block.timestamp,
+            signature: "" // No explicit signature stored for direct anchoring
+        });
         
         credentialAnchored[id] = true;
         
@@ -295,8 +308,17 @@ contract ProofVerifier {
      * @dev Update auditor registry address
      * @param _auditorRegistry New auditor registry address
      */
-    function setAuditorRegistry(address _auditorRegistry) external {
-        require(msg.sender == address(this) || auditorRegistry == IAuditorRegistry(address(0)), "Cannot update registry");
+    function setAuditorRegistry(address _auditorRegistry) external onlyAdmin {
+        require(_auditorRegistry != address(0), "Invalid registry address");
         auditorRegistry = IAuditorRegistry(_auditorRegistry);
+    }
+
+    /**
+     * @dev Transfer admin role
+     * @param newAdmin Address of the new admin
+     */
+    function transferAdmin(address newAdmin) external onlyAdmin {
+        require(newAdmin != address(0), "Invalid admin address");
+        admin = newAdmin;
     }
 }
