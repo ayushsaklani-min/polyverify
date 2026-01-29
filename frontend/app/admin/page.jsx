@@ -26,7 +26,7 @@ import { ethers } from 'ethers'
 import { getSigner } from '@/lib/ethers'
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:10000'
-const EXPLORER_URL = process.env.NEXT_PUBLIC_EXPLORER_URL || 'https://testnet-scan.polygon.technology'
+const EXPLORER_URL = process.env.NEXT_PUBLIC_EXPLORER_URL || 'https://polygonscan.com'
 
 export default function AdminPage() {
   const { address } = useAccount()
@@ -50,7 +50,7 @@ export default function AdminPage() {
       setRequiresAuth(true)
     }
 
-    
+
     // Fetch the configured admin address from backend
     console.log('[Admin Page] Backend URL:', BACKEND_URL)
     fetch(`${BACKEND_URL}/api/admin/address`)
@@ -313,7 +313,7 @@ export default function AdminPage() {
                 <div>
                   <h2 className="text-lg font-semibold text-white">Admin Authentication Required</h2>
                   <p className="text-sm text-white/50">
-                    {mounted && expectedAdminAddress 
+                    {mounted && expectedAdminAddress
                       ? `Connect the admin wallet (${expectedAdminAddress.slice(0, 6)}...${expectedAdminAddress.slice(-4)}) and sign a challenge to unlock moderation actions.`
                       : 'Connect the admin wallet and sign a challenge to unlock moderation actions.'}
                   </p>

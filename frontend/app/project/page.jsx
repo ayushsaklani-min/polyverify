@@ -9,7 +9,7 @@ import { GlassCard } from '@/components/ui/glass-card'
 import { GradientButton } from '@/components/ui/gradient-button'
 import { AnimatedBadge } from '@/components/ui/animated-badge'
 
-const explorerUrl = process.env.NEXT_PUBLIC_EXPLORER_URL || 'https://testnet-scan.polygon.technology'
+const explorerUrl = process.env.NEXT_PUBLIC_EXPLORER_URL || 'https://polygonscan.com'
 import { generateProof } from '@/lib/airkit'
 import { Lock, Send, CheckCircle, FileKey, Sparkles } from 'lucide-react'
 
@@ -84,16 +84,16 @@ export default function ProjectPage() {
     setIsSubmitting(true)
     try {
       const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'
-      
+
       // Step 1: Anchor the credential first (if not already anchored)
       // Pass the proofId so the backend can use the correct summary hash from the proof
       toast.loading('Anchoring credential on-chain...', { id: 'anchor' })
       const anchorRes = await fetch(`${BACKEND_URL}/api/proofs/anchor-credential`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           credentialId: proof.credentialId,
-          proofId: proof.proofId 
+          proofId: proof.proofId
         })
       })
 
@@ -285,7 +285,7 @@ export default function ProjectPage() {
               </div>
               <div>
                 <h2 className="text-2xl font-bold text-white">Submit Proof</h2>
-                <p className="text-white/50 text-sm">Record verification on Polygon Amoy</p>
+                <p className="text-white/50 text-sm">Record verification on Polygon Mainnet</p>
               </div>
             </div>
 
@@ -312,7 +312,7 @@ export default function ProjectPage() {
                 </motion.div>
                 <h3 className="text-2xl font-bold text-green-400 mb-2">Verification Successful!</h3>
                 <p className="text-white/60 max-w-xs">
-                  Your audit status has been recorded on Polygon Amoy Testnet
+                  Your audit status has been recorded on Polygon Mainnet
                 </p>
                 <AnimatedBadge status="verified" className="mt-6" />
                 {txResult && (

@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { GradientButton } from '@/components/ui/gradient-button';
 import { Search, ArrowLeft, ExternalLink, Github, Shield, Bug, FileCode, CheckCircle } from 'lucide-react';
 
-const explorerUrl = process.env.NEXT_PUBLIC_EXPLORER_URL || 'https://testnet-scan.polygon.technology';
+const explorerUrl = process.env.NEXT_PUBLIC_EXPLORER_URL || 'https://polygonscan.com';
 
 export default function AuditorReputationPage() {
   const searchParams = useSearchParams();
@@ -30,7 +30,7 @@ export default function AuditorReputationPage() {
   const fetchAuditorData = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:10000';
       const [auditorResponse, reputationResponse] = await Promise.all([
@@ -71,7 +71,7 @@ export default function AuditorReputationPage() {
     const now = Date.now();
     const diff = now - timestamp;
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    
+
     if (days === 0) return 'Today';
     if (days === 1) return '1 day ago';
     if (days < 30) return `${days} days ago`;
@@ -195,21 +195,21 @@ export default function AuditorReputationPage() {
                   </div>
                   <div className="text-sm text-white/60">Credentials</div>
                 </div>
-                
+
                 <div className="text-center p-4 bg-white/5 rounded-lg">
                   <div className="text-2xl font-bold text-white mb-1">
                     {reputationData?.github?.count || 0}
                   </div>
                   <div className="text-sm text-white/60">GitHub Repos</div>
                 </div>
-                
+
                 <div className="text-center p-4 bg-white/5 rounded-lg">
                   <div className="text-2xl font-bold text-white mb-1">
                     {reputationData?.code4rena?.count || 0}
                   </div>
                   <div className="text-sm text-white/60">C4 Findings</div>
                 </div>
-                
+
                 <div className="text-center p-4 bg-white/5 rounded-lg">
                   <div className="text-2xl font-bold text-white mb-1">
                     {reputationData?.immunefi?.count || 0}
@@ -281,11 +281,10 @@ export default function AuditorReputationPage() {
                             <div className="text-white/60 text-sm">{finding.title}</div>
                           </div>
                           <div className="text-right">
-                            <div className={`text-sm px-2 py-1 rounded ${
-                              finding.severity === 'HIGH' ? 'bg-red-500/20 text-red-300' :
+                            <div className={`text-sm px-2 py-1 rounded ${finding.severity === 'HIGH' ? 'bg-red-500/20 text-red-300' :
                               finding.severity === 'MEDIUM' ? 'bg-yellow-500/20 text-yellow-300' :
-                              'bg-blue-500/20 text-blue-300'
-                            }`}>
+                                'bg-blue-500/20 text-blue-300'
+                              }`}>
                               {finding.severity}
                             </div>
                           </div>
@@ -347,7 +346,7 @@ export default function AuditorReputationPage() {
                     Auto-detected from work history
                   </div>
                 </div>
-                
+
                 <div className="grid md:grid-cols-2 gap-4">
                   {reputationData.contractsWorkedOn.slice(0, 10).map((contract, index) => (
                     <motion.div
@@ -383,7 +382,7 @@ export default function AuditorReputationPage() {
                     </motion.div>
                   ))}
                 </div>
-                
+
                 {reputationData.contractsWorkedOn.length > 10 && (
                   <div className="mt-4 text-center text-sm text-white/50">
                     + {reputationData.contractsWorkedOn.length - 10} more contracts
@@ -415,9 +414,9 @@ export default function AuditorReputationPage() {
                     <div className="text-sm text-white/50 mb-1">Credibility Level</div>
                     <div className="text-lg font-bold text-white">
                       {auditorData.credibilityScore >= 800 ? 'Elite' :
-                       auditorData.credibilityScore >= 600 ? 'Expert' :
-                       auditorData.credibilityScore >= 400 ? 'Experienced' :
-                       auditorData.credibilityScore >= 200 ? 'Emerging' : 'New'}
+                        auditorData.credibilityScore >= 600 ? 'Expert' :
+                          auditorData.credibilityScore >= 400 ? 'Experienced' :
+                            auditorData.credibilityScore >= 200 ? 'Emerging' : 'New'}
                     </div>
                   </div>
                   <div>
