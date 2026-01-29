@@ -3,7 +3,7 @@
 import { Shield, Github, Twitter, Globe } from 'lucide-react'
 import Link from 'next/link'
 
-const explorerUrl = process.env.NEXT_PUBLIC_EXPLORER_URL || 'https://amoy.polygonscan.com'
+const explorerUrl = process.env.NEXT_PUBLIC_EXPLORER_URL || 'https://polygonscan.com'
 
 export function Footer() {
   return (
@@ -21,7 +21,7 @@ export function Footer() {
               </span>
             </Link>
             <p className="text-gray-400 text-sm leading-relaxed max-w-xs">
-              Verifiable smart contract audit credentials using zero-knowledge proofs on Polygon Amoy.
+              Verifiable smart contract audit credentials using zero-knowledge proofs on Polygon Mainnet.
             </p>
           </div>
 
@@ -52,9 +52,9 @@ export function Footer() {
             <div className="space-y-2 text-sm">
               <div className="flex items-center gap-2 text-gray-400">
                 <Globe className="w-4 h-4" />
-                <span>Polygon Amoy Testnet</span>
+                <span>Polygon Mainnet</span>
               </div>
-              <div className="text-gray-400">Chain ID: 80002</div>
+              <div className="text-gray-400">Chain ID: 137</div>
               <a
                 href={explorerUrl}
                 target="_blank"
@@ -70,7 +70,7 @@ export function Footer() {
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="text-gray-500 text-sm">
-            © 2024 Polverify. Built for Polygon Amoy Testnet.
+            © 2024 Polverify. Built for Polygon Mainnet.
           </div>
           <div className="flex items-center gap-4">
             <a

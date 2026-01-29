@@ -31,9 +31,9 @@ export function ConnectButton() {
     return (
       <div className="flex items-center gap-2 flex-wrap">
         {/* Wrong Network Warning */}
-        {chainId !== 80002 && (
+        {chainId !== 137 && (
           <button
-            onClick={() => switchChain({ chainId: 80002 })}
+            onClick={() => switchChain({ chainId: 137 })}
             disabled={isSwitching}
             className="flex items-center gap-2 px-4 py-2 rounded-lg bg-yellow-500/20 border border-yellow-400/30 text-yellow-300 hover:bg-yellow-500/30 transition-all duration-300 disabled:opacity-50 text-sm font-medium"
           >

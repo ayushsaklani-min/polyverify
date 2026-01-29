@@ -1,14 +1,14 @@
 export const polygonChain = {
-  id: 80002,
-  name: 'Polygon Amoy',
-  network: 'polygon-amoy',
+  id: 137,
+  name: 'Polygon Mainnet',
+  network: 'polygon',
   nativeCurrency: { name: 'MATIC', symbol: 'MATIC', decimals: 18 },
   rpcUrls: {
-    default: { http: ['https://rpc-amoy.polygon.technology'] },
-    public: { http: ['https://rpc-amoy.polygon.technology'] },
+    default: { http: ['https://polygon-rpc.com'] },
+    public: { http: ['https://polygon-rpc.com'] },
   },
   blockExplorers: {
-    default: { name: 'PolygonScan', url: 'https://amoy.polygonscan.com' },
+    default: { name: 'PolygonScan', url: 'https://polygonscan.com' },
   },
 };
 
