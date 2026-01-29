@@ -100,7 +100,8 @@ export default function ProjectPage() {
       if (!anchorRes.ok) {
         const anchorData = await anchorRes.json().catch(() => ({}))
         toast.dismiss('anchor')
-        throw new Error(anchorData?.error || anchorData?.details || 'Failed to anchor credential')
+        // Prioritize details (actual error message) over the error code
+        throw new Error(anchorData?.details || anchorData?.error || 'Failed to anchor credential')
       }
 
       const anchorData = await anchorRes.json()
