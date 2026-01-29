@@ -46,10 +46,10 @@ export default function AuditorPage() {
         // Check approval status
         const approvalResponse = await fetch(`${BACKEND_URL}/api/auditors/${address}/is-approved`)
         const approvalData = await approvalResponse.json()
-        
+
         if (approvalData.success) {
           setIsApproved(approvalData.isApproved)
-          
+
           // If approved, also fetch full auditor data to show credibility
           if (approvalData.isApproved) {
             const auditorResponse = await fetch(`${BACKEND_URL}/api/auditors/${address}`)
@@ -146,7 +146,7 @@ export default function AuditorPage() {
       // Use backend API to anchor the credential
       // This is more secure as it uses the server's private key
       const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:10000'
-      
+
       const response = await fetch(`${BACKEND_URL}/api/proofs/anchor-credential`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -157,13 +157,14 @@ export default function AuditorPage() {
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || error.details || 'Failed to anchor credential')
+        // Prioritize details (actual error message) over the error code
+        throw new Error(error.details || error.error || 'Failed to anchor credential')
       }
 
       const data = await response.json()
-      
+
       setIsAnchored(true)
-      
+
       if (data.alreadyAnchored) {
         toast.success('✅ Credential was already anchored on-chain')
       } else {
@@ -197,7 +198,7 @@ export default function AuditorPage() {
           {address && <AuditorBadge address={address} showScore={true} size="lg" />}
         </div>
         <p className="text-white/60 text-lg">Issue verifiable audit credentials and anchor them on-chain</p>
-        
+
         {address && (
           <div className="flex items-center justify-center gap-6 mt-6">
             <CredibilityScore address={address} size="md" showBreakdown={true} />
@@ -237,7 +238,7 @@ export default function AuditorPage() {
                   </div>
                   <AuditorBadge address={address} showScore={true} />
                 </div>
-                
+
                 {/* Trust Verification Details */}
                 <div className="p-4 bg-green-500/10 border border-green-400/20 rounded-lg">
                   <div className="flex items-center gap-2 mb-2">
@@ -251,7 +252,7 @@ export default function AuditorPage() {
                     <div>✓ External platform activity verified (GitHub, Code4rena, Immunefi)</div>
                   </div>
                 </div>
-                
+
                 <div className="flex gap-2">
                   <a
                     href={`/auditor/reputation?address=${address}`}
@@ -273,7 +274,7 @@ export default function AuditorPage() {
                     </p>
                   </div>
                 </div>
-                
+
                 {/* Onboarding Information */}
                 <div className="p-4 bg-yellow-500/10 border border-yellow-400/20 rounded-lg">
                   <h4 className="text-sm font-medium text-yellow-300 mb-2">How to Get Approved:</h4>
@@ -456,7 +457,7 @@ export default function AuditorPage() {
                   <div className="flex items-start gap-2 text-green-400/80 text-sm">
                     <CheckCircle2 className="h-5 w-5 mt-0.5 flex-shrink-0" />
                     <p className="leading-relaxed">
-                      Ready to anchor. Only hashed summary and credential ID will be stored on-chain, 
+                      Ready to anchor. Only hashed summary and credential ID will be stored on-chain,
                       preserving privacy of full audit report.
                     </p>
                   </div>
